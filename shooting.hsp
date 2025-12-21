@@ -1,0 +1,458 @@
+/* ～変数紹介～
+ * comment: Results画面の文字列「セーブして」が入る。記録更新なしの場合は空になる。
+ * downkey: 下キーの入力確認。OFFのときは0、ONのときは1
+ * upkey: 上キーの入力確認。以下同様。
+ * rightkey: キーの入力確認。右キー(発射)ONのときは4。
+ * spacekey: スペースキー(ポーズ移行)の入力確認。以下略
+ * intro: カウントダウンの数字
+ * enmpw: 敵の強さ。この数の分だけ当てないと死なない。
+ * enmnm: 1度に発生する敵の数
+ * lv: レベル値
+ * time: プレイ時間(s)。ループ回数で測っているので誤差あり。
+ * kill: 敵を倒した数
+ * pst: ポーズ中のEscキー(タイトルに戻る)入力確認
+ * psb: ポーズ中のEnterキー(再開)の入力確認
+ * plcy: プレイヤーのy座標
+ * atrp: プレイヤーの当たり判定(Yes:1 No:0)
+ * lpct: メインループのループ回数
+ * kai: 敵の作成時の配列番号
+ * su: 弾の作成時の配列番号
+ * ebnum: 敵弾の作成時の配列番号
+ * act(1次配列最大32): 敵攻撃時に黒く表示するかしないか(Yes1 No2)
+ * enmdmg(1次配列最大32): 敵のダメージ
+ * bomby(1次配列最大32): 弾丸のy座標
+ * bombx(1次配列最大32): 弾丸のx座標
+ * enmy(〃): 敵のy座標
+ * enmx(〃): 敵のx座標
+ * ebombx(〃): 敵が発射した弾丸のx座標
+ * ebomby(〃): 敵が発射した弾丸のy座標
+ * pts: 得点
+ * bestpts: セーブデータを含めた最高得点
+ * a,b: 弾丸の当たり判定
+ * gtrt: 隠しコマンドの入力受け付け
+ * root: 隠しコマンドの確認(Yes:1 No:0)
+ * svdtfed: 編集先のセーブデータ
+ * mstartpoint: 無敵状態に切り替わった時点のlpct値
+ * muteki: 無敵状態かどうか(Yes:1 No:0)
+ * life: 残りライフ
+ */
+#packopt name "shooting"
+#packopt icon "app.ico"
+#packopt version "version.txt"
+
+	assets_dir="assets/"
+	mes "Now Loading..."
+	randomize
+
+	//画像の登録
+	celload assets_dir+"player.bmp",1
+	celload assets_dir+"enemysgs.bmp",2
+	celload assets_dir+"SML_flying.jpg",3
+	celload assets_dir+"back.gif",4
+	celload assets_dir+"fire.bmp",5
+	celload assets_dir+"life.png",6
+	celdiv 6,128,128
+
+	//音声ファイルの登録
+	dim mmlist,16
+	mmload_opt assets_dir+"bgm.wav",0,1
+	mmload_opt assets_dir+"miss.wav",1,0
+	mmload_opt assets_dir+"title.mp3",2,1
+	mmload_opt assets_dir+"countdown.wav",3,0
+	mmload_opt assets_dir+"ending_bad.mp3",4,1
+	mmload_opt assets_dir+"kill.wav",5,0
+	mmload_opt assets_dir+"shoot.wav",6,0
+	mmload_opt assets_dir+"se_shot.wav",7,0
+	mmload_opt assets_dir+"go.wav",8,0
+	mmload_opt assets_dir+"ending_good.mp3",9,1
+	mmload_opt assets_dir+"pause.wav",10,0
+	mmload_opt assets_dir+"powerdown.wav",11,0
+	mmload_opt assets_dir+"options.mp3",13,1
+
+*top //タイトル画面
+	mmstop
+	mmplay_opt 2
+
+	//変数の初期化
+	dim enmx,32 : dim enmy,32 : dim bombx,32 : dim bomby,32 : dim enmdmg,32
+	dim act,32 : dim ebombx,8 : dim ebomby,8
+	pts=0 : psb=0 : kai=0 : lpct=0 : b=0 : a=0 : atrp=0 : plcy=0 : ebnum=0
+	kill=0 : time=0 : lv=1 : enmnm=1 : enmpw=1 : life=8 : muteki=0 : mstartpoint=0
+	repeat length(enmx)
+		enmx(cnt)=700
+		ebombx(cnt)=641
+		ebomby(cnt)=-20
+		bombx(cnt)=-100
+		bomby(cnt)=-1
+	loop
+
+	//セーブデータの確認、読み込み
+	exist "save.bin"
+	if strsize!-1 : bload "save.bin",bestpts,64 : else : bestpts=-1
+
+	//ここから描画
+	title "シューティング"
+	redraw 0
+	clrobj
+
+	pos 0,0
+	celput 3
+
+	pos 85,40
+	color 0,0,0
+	font msgothic,64,1
+	print "シューティング"
+
+	gmode 3,,,200 //説明文の後ろの半透明画像配置
+	pos 40,220
+	celput 4
+	gmode 0
+
+	pos 50,230
+	font msgothic,18
+	if bestpts=-1 : mes "最高記録: なし" : else : mes "最高記録: "+bestpts+" 点"
+	mes "\n飛んでくる敵を撃ち落としてください。"
+	mes "上下キーで移動し、右キーで弾を撃ちます。"
+	mes "スペースキーで一時停止します。"
+	mes "レベルは10秒ごとに上がります。最大レベルは8です。"
+	mes "奇数レベルでは敵の強さ、偶数レベルでは敵の数が変化します。"
+	mes "また、レベル4から敵も弾を撃ってきます。"
+	mes "得点は時間1点、撃破数5点です。"
+	mes "記録更新時は結果画面で記録を保存できます。"
+	mes "save.binファイルを消すと記録を消去できます。"
+	redraw 1
+
+	font msgothic,32
+	pos 170,140
+	objsize 300,50
+	objmode 2
+	button "ゲームを始める",*prepare
+
+	repeat
+		stick title_key,1+32+128+1024
+		if title_key=1+128+1024 : root=1 : break
+		if title_key&32 : break
+		await 16
+	loop
+	if root=1 : goto *svedit
+*prepare //カウントダウン画面
+	mmstop
+	clrobj
+
+	font msgothic,64,1
+	repeat 3
+		mmplay_opt 3
+		color 200,208,208
+		boxf
+		pos 300,200
+		color 0,0,0
+		print 3-cnt
+		await 1000
+	loop
+
+	mmplay_opt 8
+	mmplay_opt 0
+*main //メインループ
+	repeat
+		title "シューティング "+time+"秒 "+kill+"撃破"
+		pts=time+(kill*5)
+
+		redraw 0
+		color 200,208,208
+		boxf
+		
+		color 255,255,255
+		pos 250,200
+		font msgothic,64,1
+		print ""+pts+"点"
+		pos 160,448
+		font msgothic,32
+		print "↑↓で移動 →で発射"
+
+		color 200,208,208
+		gmode 4,,,256
+
+		//画面内の敵を表示
+		gosub *mvenemy
+		repeat length(enmx)
+			if enmx(cnt)>=-76 & enmx(cnt)<=641 { //画面外なら飛ばしてもう一度ループ
+				pos enmx(cnt),enmy(cnt)
+				celput 2
+				if act(cnt)=1 {
+					act(cnt)=0
+					color 0,0,0
+					boxf enmx(cnt),enmy(cnt),enmx(cnt)+75,enmy(cnt)+75
+				}
+			}
+		loop
+
+		//プレイヤーキャラクターの表示
+		gosub *keycheck
+		if pause_key&128 : break
+		if muteki=1 && lpct\4!=1 : else : pos 0,plcy : celput 1
+
+		//弾丸の表示
+		stick rightkey,,0
+		if rightkey&4 : rightkey=0 : gosub *mkbomb
+		gosub *mvbomb
+		repeat length(bombx)
+			color 0,0,0
+			if bombx(cnt)>10 & bombx(cnt)<640 : circle bombx(cnt),bomby(cnt),bombx(cnt)+16,bomby(cnt)+16
+		loop
+
+		pos 0,0
+		color 0,0,0
+		font msgothic,32
+		print "Lv."+lv
+
+		//敵の弾の表示
+		gosub *mvebomb
+		repeat length(ebombx)
+			color 200,208,208
+			gmode 4,,,256
+			if ebombx(cnt)>-20 & ebombx(cnt)<640 : pos ebombx(cnt),ebomby(cnt) : celput 5
+		loop
+
+		//自分の当たり判定
+		if muteki=0 {
+			repeat length(enmx)
+				if muteki=0 & enmx(cnt)<75 : gosub *pechk
+				if life<1 : break
+				if muteki=0 & ebombx(cnt)<75 : gosub *pbchk
+				if life<1 : break
+			loop
+		}
+		if life<0 : life=0
+
+		color 200,208,208
+		gmode 4,,,256
+		if life>0 : pos 256,0 : celput 6,life-1,0.75,0.75
+		redraw 1
+
+		//弾丸の当たり判定
+		repeat
+			if enmx(a)<bombx(b)+16 & enmx(a)+75>bombx(b) : gosub *shotck
+			b=b+1
+			if b>=length(bombx) : b=0 : a=a+1
+			if a>=length(enmx) : a=0 : b=0 : break
+		loop
+
+		//ポーズ移行
+		if rightkey&16: gosub *pause
+		if pause_key&128 : break
+
+		if life<=0 : break
+
+		await 16
+		lpct=lpct+1
+		if muteki=1 & lpct-mstartpoint>=124 : muteki=0
+		if lpct\62=0 : time=time+1 : gosub *mkenemy //1秒ごとに敵を作る
+		if lpct\124=0 & lv>=4 : gosub *mkebomb //Lv4以降2秒ごとに敵が弾を発射
+		if lpct\620=0 & lv<8 : lv=lv+1 //10秒ごとにレベルアップ
+		if lpct\1240=0 & enmnm<4 : enmnm=enmnm+1 //同時に出現する敵を増やす
+		if lpct\1240=620 & enmpw<5 : enmpw=enmpw+1 //敵の強さを上げる(Max5)
+	loop
+	if pause_key&128 : pause_key=0 : goto *top //PAUSE中のESCでタイトルへ
+	if life<1 : goto *gameover //当たり判定がYesのときGAMEOVER画面へ
+
+*keycheck //上下キーの認識
+	getkey upkey,38
+	getkey downkey,40
+	if upkey=1 : plcy=plcy-8
+	if downkey=1 : plcy=plcy+8
+	if plcy<0 : plcy=0
+	if plcy>440 : plcy=440
+	upkey=0 : downkey=0
+	return
+
+*mkenemy //敵を作る
+	repeat enmnm
+		enmy(kai)=rnd(545)-70
+		enmx(kai)=640
+		kai=kai+1
+		if kai=31 : kai=0
+	loop
+	return
+
+*mvenemy //敵を動かす
+	repeat length(enmx)
+		if enmx(cnt)>=-100 & enmx(cnt)<=640 : enmx(cnt)=enmx(cnt)-4
+		if enmx(cnt)<=-75 : enmdmg(cnt)=0 : enmx(cnt)=700
+	loop
+	return
+
+*mkbomb //弾丸を作る
+	mmplay_opt 6
+	bombx(su)=75
+	bomby(su)=plcy+12
+	su=su+1
+	if su=31 : su=0
+	return
+
+*mvbomb //弾丸を動かす+弾丸が画面外ならx=-100まで飛ばす
+	repeat length(bombx)
+		if bombx(cnt)>10 & bombx(cnt)<640 : bombx(cnt)+12 : else : bombx(cnt)=-100
+	loop
+	return
+
+*pechk //プレイヤーの敵の当たり判定
+	if enmy(cnt)<plcy+40 & enmy(cnt)+75>plcy {
+		muteki=1
+		life=life-2
+		mstartpoint=lpct
+		if life>0 : mmplay_opt 11
+		await 500
+	}
+	return
+
+*pbchk //プレイヤーの弾の当たり判定
+	if ebomby(cnt)<plcy+40 & ebomby(cnt)+25>plcy {
+		muteki=1
+		life--
+		mstartpoint=lpct
+		if life>0 : mmplay_opt 11
+		await 500
+	}
+	return
+
+*shotck //弾丸の当たり判定(敵)
+	if enmy(a)+75>bomby(b) & enmy(a)<bomby(b)+16 {
+		mmplay_opt 7
+		enmdmg(a)=enmdmg(a)+1
+		if enmdmg(a)>=enmpw {
+			mmplay_opt 5
+			enmdmg(a)=0
+			enmx(a)=700
+			kill=kill+1
+		}
+		bombx(b)=-100
+		act(a)=1
+	}
+	return
+
+*mkebomb //敵が弾を作る
+	repeat length(ebombx)
+		if enmx(cnt)>200 & enmx(cnt)<640 {
+			ebombx(ebnum)=enmx(cnt)-50
+			ebomby(ebnum)=enmy(cnt)+25
+			ebnum++
+		}
+		if ebnum>length(ebombx)-1 : ebnum=0
+	loop
+	return
+
+*mvebomb //敵の弾を動かす
+	repeat length(ebombx)
+		if ebombx(cnt)>-50 & ebombx(cnt)<640 : ebombx(cnt)=ebombx(cnt)-8
+		if ebombx(cnt)<=-50 : ebombx(cnt)=641
+	loop
+	return
+	
+*pause //ポーズ画面
+	mmplay_opt 10
+
+	color 0,0,0
+	font msgothic,32
+	pos 270,200
+	mes "PAUSE"
+
+	font msgothic,20
+	color 64,64,64
+	pos 140,250
+	mes "Spaceキー:再開　Escキー:タイトルに戻る"
+
+	repeat
+		stick pause_key
+		if pause_key&(16+128) : break
+		await 16
+	loop
+	if pause_key&16 : mmplay_opt 10
+	return
+
+*gameover //GAMEOVER画面
+	color 0,0,0
+	pos 180,200
+	font msgothic,64,1
+	mes "GAMEOVER"
+
+	mmstop
+	mmplay_opt 1
+	await 2000
+*result //結果
+	pts=time+(kill*5)
+	if pts>=512 : mmplay_opt 9
+	if pts<512 : mmplay_opt 4
+
+	redraw 0
+	color 200,208,208
+	boxf
+
+	color 0,0,0
+	font msgothic,100,1
+	pos 160,80
+	mes "RESULT"
+
+	font msgothic,32
+	pos 175,200
+	mes "得点: "+pts+"点"
+	if bestpts<pts : bestpts=pts
+	mes "最高得点: "+bestpts+"点"
+
+	if bestpts=pts : comment="セーブして" : else : comment=""
+	objsize 340,50
+	font msgothic,25
+	pos 150,300
+	button ""+comment+"タイトルへ戻る",*saving
+
+	font msgothic,48
+	color 100,100,100
+	if bestpts=pts : pos 200,370 : print "記録更新!!"
+	redraw 1
+	stop
+
+*saving //セーブ
+	if bestpts=pts : bsave "save.bin",bestpts,8
+	goto *top
+
+*svedit //隠しコマンド
+	mmstop
+	mmplay_opt 13
+	title "セーブデータエディタ（デバッグ用）"
+	root=0
+
+	redraw 0
+	cls 4
+
+	color 0,255,0
+	pos 80,80
+	font msgothic,24
+	print "セーブデータを任意の値に書き換えます。\n半角数字で入力してください。"
+
+	pos 180,350
+	font msgothic,32
+	mes "現在の記録: "+bestpts+" 点"
+
+	objsize 220,32
+	objmode 2
+	font msgothic,20
+	pos 210,200
+	input svdtfed
+	button "おｋ！",*svchange
+	button "戻る",*top
+	redraw 1
+	stop
+
+*svchange //セーブデータ編集
+	bsave "save.bin",svdtfed,8
+	goto *top
+
+// 音声ファイルが存在する場合のみ mmload する
+#deffunc mmload_opt str mmload_opt_file, int mmload_opt_id, int mmload_opt_mode
+	exist mmload_opt_file
+	if strsize!-1 : mmlist(mmload_opt_id)=1 : mmload mmload_opt_file, mmload_opt_id, mmload_opt_mode
+	return
+
+// mmload_opt で読み込めていた場合のみ mmplay する
+#deffunc mmplay_opt int mmplay_opt_id
+	if mmlist(mmplay_opt_id) : mmplay mmplay_opt_id
+	return
