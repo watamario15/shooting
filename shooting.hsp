@@ -1,4 +1,9 @@
 #include "hsp3dish.as"
+#packopt name "shooting"
+#packopt icon "app.ico"
+#packopt version "version.txt"
+#packopt xsize 1280
+#packopt ysize 720
 
 	randomize
 	gmode 2 // アルファチャンネルの有効化
@@ -13,100 +18,45 @@
 	if instr(info_os,0,"iOS")=-1 & instr(info_os,0,"android")=-1 & instr(info_os,0,"Emscripten")=-1 : assets_dir="data/" : else : assets_dir=""
 
 	dim pts_result,11 : dim year,11 : dim month,11 : dim day,11 : dim hour,11 : dim minute,11
-	keyboardmode=0 : vibrate=0
+	keyboardmode=0 : vibrate=0 : scrx=1280 : scry=720
 	sdim tempstr,32,11
 
 	// 画像の登録
-	exist assets_dir+"SML_flying.jpg"
-	if strsize!-1 : use_bg=1 : celload assets_dir+"SML_flying.jpg",1 : else : use_bg=0
-	celload assets_dir+"back.png",2
+	exist assets_dir+"bg.jpg"
+	if strsize!-1 : use_bg=1 : celload assets_dir+"bg.jpg",1 : else : use_bg=0
+	celload assets_dir+"white.png",2
 	celload assets_dir+"enemy.png",4
 	celload assets_dir+"fire.png",6
-	celload assets_dir+"shootbutton.png",10
-	celload assets_dir+"life.png",12
-	celdiv 12,128,128
+	celload assets_dir+"pause.png",8
+	celload assets_dir+"shoot.png",10
+	celload assets_dir+"life.png",12 : celdiv 12,128,128
 	celload assets_dir+"lifeup.png",24
 	celload assets_dir+"special.png",25
-	celload assets_dir+"troopa.png",26
-	celload assets_dir+"pushedbutton.bmp",27
-	celload assets_dir+"Bowser_FC.png",28
-	celload assets_dir+"Bowser_SFC.png",29
-	celload assets_dir+"Bowser_new.png",30
-	celload assets_dir+"Jr_new.png",31
-	celload assets_dir+"kingbomb_new.png",32
-	celload assets_dir+"megabros_new.png",33
-	celload assets_dir+"player.png",34
-	celdiv 34,128,64
-	celload assets_dir+"star.png",38
-	celdiv 38,100,100
+	celload assets_dir+"shell.png",26
+	celload assets_dir+"grey.png",27
+	celload assets_dir+"bowser1.png",28
+	celload assets_dir+"bowser2.png",29
+	celload assets_dir+"bowser3.png",30
+	celload assets_dir+"jr.png",31
+	celload assets_dir+"kingbomb.png",32
+	celload assets_dir+"megabros.png",33
+	celload assets_dir+"player.png",34 : celdiv 34,128,64
+	celload assets_dir+"star.png",38 : celdiv 38,100,100
 	celload assets_dir+"cloud1.png",42
 	celload assets_dir+"cloud2.png",43
-
-	buffer 3
-	pos 0,0
-	picload assets_dir+"launch.bmp",1
-	pos 0,0
-
-	buffer 7
-	pos 0,0
-	picload assets_dir+"back.bmp",1
-	pos 0,0
-
-	celload assets_dir+"pause.png",8
-
-	buffer 9
-	pos 0,0
-	picload assets_dir+"continue.bmp",1
-	pos 0,0
-
-	buffer 11
-	pos 0,0
-	picload assets_dir+"giveup.bmp",1
-	pos 0,0
-
-	buffer 20
-	pos 0,0
-	picload assets_dir+"save.bmp",1
-	pos 0,0
-
-	buffer 21
-	pos 0,0
-	picload assets_dir+"option.png",1
-	pos 0,0
-
-	buffer 22
-	pos 0,0
-	picload assets_dir+"delete.bmp",1
-
-	buffer 23
-	pos 0,0 : picload assets_dir+"back_option.bmp",1
-
-	buffer 44
-	pos 0,0 : picload assets_dir+"shtstng.bmp",1
-
-	buffer 45
-	pos 0,0 : picload assets_dir+"autoshoot.bmp",1
-
-	buffer 46
-	pos 0,0 : picload assets_dir+"manualshoot.bmp",1
-
-	buffer 47
-	pos 0,0 : picload assets_dir+"chkdel.bmp",1
-
-	buffer 48
-	pos 0,0 : picload assets_dir+"delicon.png",1
-
-	buffer 49
-	pos 0,0 : picload assets_dir+"vibset.bmp",1
-
-	buffer 50
-	pos 0,0 : picload assets_dir+"vibenable.bmp",1
-
-	buffer 51
-	pos 0,0 : picload assets_dir+"vibdisable.bmp",1
-
-	buffer 52
-	pos 0,0 : picload assets_dir+"vibhell.bmp",1
+	buffer 9 : pos 0,0 : picload assets_dir+"continue.png",1
+	buffer 11 : pos 0,0 : picload assets_dir+"giveup.png",1
+	buffer 21 : pos 0,0 : picload assets_dir+"option.png",1
+	buffer 23 : pos 0,0 : picload assets_dir+"back.png",1
+	buffer 44 : pos 0,0 : picload assets_dir+"shootset.png",1
+	buffer 45 : pos 0,0 : picload assets_dir+"auto.png",1
+	buffer 46 : pos 0,0 : picload assets_dir+"manual.png",1
+	buffer 47 : pos 0,0 : picload assets_dir+"record.png",1
+	buffer 48 : pos 0,0 : picload assets_dir+"reset.png",1
+	buffer 49 : pos 0,0 : picload assets_dir+"vibset.png",1
+	buffer 50 : pos 0,0 : picload assets_dir+"vibon.png",1
+	buffer 51 : pos 0,0 : picload assets_dir+"viboff.png",1
+	buffer 52 : pos 0,0 : picload assets_dir+"vibhell.png",1
 	gsel 0
 
 	// 音声の登録
@@ -142,7 +92,7 @@
 	last=0 : itmt=rnd(620) : bckclr=0 : starcol=1 : scc=1 : star=0 : flower=0 : redboss=0 : boss=0
 	bbombx=1500 : bbomby=-20 : bbmpos=-1 : rest=0 : toopt=0 : scranime=0 : tppt=0
 	repeat length(enmx)
-		enmx(cnt)=1300 : cloudx(cnt)=1300 : ebombx(cnt)=1500 : ebomby(cnt)=-20 : bombx(cnt)=-200
+		enmx(cnt)=scrx+20 : cloudx(cnt)=scrx+20 : ebombx(cnt)=1500 : ebomby(cnt)=-20 : bombx(cnt)=-200
 		bomby(cnt)=-1.0
 	loop
 
@@ -158,12 +108,6 @@
 		bload "save.bin",vibrate,4,240 // バイブレーションの設定(int; 4byte)
 		bload "save.bin",keyboardmode,4,244 // オート・マニュアルの設定(int; 4byte)
 	}
-
-	// ボタンを表示
-	objimage 3,0,0 : pos (1280-400)/2,235 : objsize 400,128
-	button "",*startscene
-	objimage 21,,,128,0,128,0 : pos 1280-128,720-128 : objsize 128,128
-	button "",*optgo
 	mmplay_opt 1
 
 	repeat
@@ -171,29 +115,30 @@
 		if use_bg : pos 0,0 : celput 1
 		pos 290,60 : color 0,0,0 : font "",99,1
 		mes "シューティング"
-		if instr(info_os,0,"Emscripten")!-1 { // Web 版はボタンが背景に隠れるので上書き
-			pos (1280-400)/2,235 : gcopy 3,,,400,128
-			pos 1280-128,720-128 : gcopy 21,,,128,128
-		}
-		gmode 3,,,200 : pos (1280-768)/2,400
+		font "",64,,4 : objcolor 255,255,255
+		pos 350,235 : mes "-- TAP TO START --", mesopt_outline
+		pos scrx-128,scry-128 : gcopy 21,,,128,128
+		gmode 3,,,200 : pos (scrx-768)/2,400
 		celput 2
-		gmode 2 : pos (1280-768)/2+12,404 : font "",24
+		gmode 2 : pos (scrx-768)/2+12,404 : font "",24
 		if pts_result(0)<=0 : mes "最高記録: なし" : else : mes "最高記録: "+pts_result(0)+" 点"
 		mes "\n飛んでくる敵を撃ち落としてください。"
 		mes "タップで上下に移動し、Shoot!ボタンで弾を撃ちます。"
 		mes "アイテムを取ると、少し良いことが起こります。"
 		mes "レベルは10秒ごとに8まで上がります。"
 		mes "得点は耐久時間、撃破数、アイテムの取得数で算出します。"
-		await 1000/60
 		redraw 1
+		stick key
+		if key&(16|32) : break
+		if key&256 {
+			if mousex>=0 & mousex<scrx & mousey>=0 & mousey<scry {
+				if mousex>=scrx-128 & mousey>=scry-128 : toopt=1
+				break
+			}
+		}
+		await 1000/60
 	loop
-	onclick
 
-*optgo
-	toopt=1
-	goto *startscene
-
-*startscene
 	mmplay_opt 18
 	clrobj
 	repeat // ここのposを変数にしてアニメーション
@@ -209,23 +154,22 @@
 		if use_bg : pos scranime*64,0 : celput 1
 		pos 290+scranime*64,60 : color 0,0,0 : font "",99,1
 		mes "シューティング"
-		pos (1280-400)/2+scranime*64,235 : gcopy 3,,,400,128
-		pos (1280-128)+scranime*64,720-128 : gcopy 21,,,128,128
-		gmode 3,,,200 : pos (1280-768)/2+scranime*64,400
+		pos scrx-128+scranime*64,scry-128 : gcopy 21,128*toopt,0,128,128
+		gmode 3,,,200 : pos (scrx-768)/2+scranime*64,400
 		celput 2
-		gmode 2 : pos (1280-768)/2+12+scranime*64,404 : font "",24
+		gmode 2 : pos (scrx-768)/2+12+scranime*64,404 : font "",24
 		if pts_result(0)<=0 : mes "最高記録: なし" : else : mes "最高記録: "+pts_result(0)+" 点"
 		mes "\n飛んでくる敵を撃ち落としてください。"
 		mes "タップで上下に移動し、Shoot!ボタンで弾を撃ちます。"
 		mes "アイテムを取ると、少し良いことが起こります。"
 		mes "レベルは10秒ごとに8まで上がります。"
 		mes "得点は耐久時間、撃破数、アイテムの取得数で算出します。"
-		if cnt*64>1280 : break
-		await 1000/60
+		if cnt*64>scrx : break
 		redraw 1
+		await 1000/60
 	loop
 	if toopt!=0 : goto *options
-*prepare
+
 	mmstop : clrobj
 	repeat 3
 		mmplay_opt 4
@@ -233,7 +177,7 @@
 		gosub *stopsc
 		font "",128,1
 		pos 600,280 : color 0,0,0 : mes 3-cnt
-		pos (1280-128*6/5)/2,0 : celput 12,life-1,1.2,1.2
+		pos (scrx-128*6/5)/2,0 : celput 12,life-1,1.2,1.2
 		redraw 1
 		await 1000
 	loop
@@ -260,7 +204,7 @@
 
 		// 雲を表示
 		repeat length(cloudx)
-			if cloudx(cnt)>=-300 && cloudx(cnt)<=1280 {
+			if cloudx(cnt)>=-300 && cloudx(cnt)<=scrx {
 				pos cloudx(cnt),cloudy(cnt)
 				if cdspc(cnt)==0 : celput 42,,2,2
 				if cdspc(cnt)==1 : celput 42,,3,3
@@ -280,7 +224,7 @@
 		// 画面内の敵・アイテムを表示
 		gosub *mvenemy
 		repeat length(enmx)
-		if enmx(cnt)>=-100 && enmx(cnt)<=1280 { // 画面外なら飛ばしてもう一度ループ
+		if enmx(cnt)>=-100 && enmx(cnt)<=scrx { // 画面外なら飛ばしてもう一度ループ
 			pos enmx(cnt),enmy(cnt)
 			if species(cnt)==0 : celput 4
 			if species(cnt)==1 : celput 26
@@ -304,14 +248,14 @@
 		// ボスを表示
 		if boss>0 {
 			pos bposx,bposy
-			if bossspc==0 : celput 28,,3,3
-			if bossspc==1 : celput 29,,2,2
+			if bossspc==0 : celput 28,,16,16
+			if bossspc==1 : celput 29,,6,6
 			if bossspc==2 : celput 30
 			if bossspc==3 : celput 31,,2,2
 			if bossspc==4 : celput 32,,0.7,0.7
 			if bossspc==5 : celput 33,,0.7,0.7
 			bpbarpy=bposy+bsy-64
-			if bpbarpy>1280-256-64 : bpbarpy=1280-256-64
+			if bpbarpy>scrx-256-64 : bpbarpy=scrx-256-64
 			color 150,150,150 : boxf bposx+32,bpbarpy-32,bposx+bsx-32,bpbarpy
 			if redboss>0 : color 196,196,196 : else : color 64,64,64
 			boxf bposx+36,bpbarpy-28,(bsx-72)*boss/bpw+bposx+36,bpbarpy-4
@@ -348,9 +292,7 @@
 		if flower>1 && (lpct&16)=0 : color 255,255,255 : else : color 0,0,0
 		gosub *mvbomb
 		repeat length(bombx)
-		if bombx(cnt)>10 && bombx(cnt)<=1280{
-		    circle bombx(cnt),bomby(cnt),bombx(cnt)+32,bomby(cnt)+32
-		}
+			if bombx(cnt)>10 && bombx(cnt)<=scrx : circle bombx(cnt),bomby(cnt),bombx(cnt)+32,bomby(cnt)+32
 		loop
 
 		// 敵の弾の表示
@@ -358,27 +300,27 @@
 		gosub *mvebomb
 		repeat length(ebombx)
 			color 0,0,0
-			if ebombx(cnt)>-50 && ebombx(cnt)<=1280 {
-			pos ebombx(cnt),ebomby(cnt)
-			celput 6
-		}
-		if bbombx>-50 && bbombx<=1280 {
-			pos bbombx,347
-			celput 6,,2,2
-		}
-		if bbomby>0 {
-			pos 608,bbomby
-			celput 6,,2,2
-		}
+			if ebombx(cnt)>-48 && ebombx(cnt)<=scrx {
+				pos ebombx(cnt),ebomby(cnt)
+				celput 6,,2,2
+			}
+			if bbombx>-48 && bbombx<=scrx {
+				pos bbombx,347
+				celput 6,,4,4
+			}
+			if bbomby>0 {
+				pos scrx/2,bbomby
+				celput 6,,4,4
+			}
 		loop
 
 		// ボタン表示
-		if quick==1 : gmode 3,,,150 : pos 1280-256,0 : gcopy 27,0,0,256,128
-		gmode 2 : pos 1280-256,0 : celput 10
-		pos 1280-256,720-128 : celput 8
+		if quick==1 : gmode 3,,,150 : pos scrx-256,0 : gcopy 27,0,0,256,128
+		gmode 2 : pos scrx-256,0 : celput 10
+		pos scrx-256,scry-128 : celput 8
 
 		// LIFE表示
-		pos (1280-128*6/5)/2,0 : celput 12,life-1,1.2,1.2
+		pos (scrx-128*6/5)/2,0 : celput 12,life-1,1.2,1.2
 
 		// Level表示
 		pos 0,0 : color 0,0,0 : font "",64
@@ -386,28 +328,40 @@
 
 		redraw 1
 
-		// タップ位置の判定
-		BkQuick=quick : quick=0
-		stick click
-		mtlist tapid
-		tapnum=stat // タップ数
+		// 操作受付
+		BkQuick=quick
+		quick=0
+
+		getkey shiftkey,16
+		stick key,2|4|8
+		if key&2 {
+			if shiftkey : plcy-=8 : else : plcy-=16
+		}
+		if key&8 {
+			if shiftkey : plcy+=8 : else : plcy+=16
+		}
+		if key&4 {
+			quick=1
+			if BkQuick==0 : tppt=lpct+1
+		}
+		if key&16 : gopause=1
+
+		mtlist tapid : tapnum=stat // タップ数
 		repeat tapnum
 			id=tapid(cnt)
 			mtinfo tap,id
-			if 1280-256<tap(1) && 128>tap(2) {
+			if scrx-256<tap(1) && 128>tap(2) {
 				quick=1
 				if BkQuick==0 : tppt=lpct+1
+			} else : if scrx-256<tap(1) && scry-128<tap(2) {
+				gopause=1
 			} else {
-				if 1280-256<tap(1) && 720-128<tap(2) {
-					if click&256 : gopause=1
-				} else : if restart!=1 {
-					plcy=tap(2)-32 : restart=1
-				}
+				plcy=tap(2)-32
 			}
 		loop
+
 		if plcy<0 : plcy=0
 		if plcy>656 : plcy=656
-		restart=0
 		if gopause==1 : gopause=0 : gosub *pause
 		if gvup==1 : break
 
@@ -431,7 +385,7 @@
 						if boss<=0 {
 							mmplay_opt 17
 							boss=0
-							bposx=1300
+							bposx=scrx+20
 							bkpt+=bpw/2
 							bkt++
 							bktime=lpct
@@ -482,7 +436,7 @@
 		if mkenmt<=lpct || itmt<=lpct : gosub *mkenemy // 敵を作る
 		if mkcdt<=lpct : gosub *mkcloud // 雲(背景)を作る
 		if lpct\124==0 && lv>=4 : gosub *mkebomb // Lv4以降2秒ごとに敵が弾を発射
-		if boss>0 && lpct\86==0 : bbombx=1280
+		if boss>0 && lpct\86==0 : bbombx=scrx
 		if lpct\620==0 && lv<8 : lv++ // 10秒ごとにレベルアップ
 		if lpct\1240==0 && lv>=3 && enmnm<4 : enmnm++ // 同時に出現する敵を増やす
 		if lpct\1240==620 && lv>4 && enmpw<3 : enmpw++ // 敵の強さを上げる(Max5)
@@ -491,66 +445,287 @@
 		if boss==-100 && rest<=0 : gosub *mkboss
 	loop
 	if gvup==1 : gvup=0 : goto *top
-	if life<=0 : goto *gameover //体力が0以下の時GAMEOVER画面へ
+
+	//体力が0以下の時GAMEOVER画面へ
+	mmstop
+	clrobj
+	if vibrate==0 : devcontrol "vibrate",500
+	mmplay_opt 6
+	repeat
+		redraw 0
+		gosub *stopsc
+		color 0,0,0 : pos 260,280
+		font "",128,1
+		mes "GAMEOVER"
+		redraw 1
+		if cnt>246 : break
+		await 1000/60
+	loop
+
+	pts=time+kill(0)*4+kill(1)*8+kill(2)*4+bkpt
+	year(10)=gettime(0) : month(10)=gettime(1) : day(10)=gettime(3) : hour(10)=gettime(4) : minute(10)=gettime(5)
+	gosub *sort // ソートしに行く
+	if standing<10 : gosub *save
+	if year(10)==0 : tempstr(10)="0000/" : else : tempstr(10) = ""+year(10)+"/"
+	if month(10)<10 : tempstr(10)+="0"+month(10)+"/" : else : tempstr(10)+=""+month(10)+"/"
+	if day(10)<10 : tempstr(10)+="0"+day(10)+" " : else : tempstr(10)+=""+day(10)+" "
+	if hour(10)<10 : tempstr(10)+="0"+hour(10)+":" : else : tempstr(10)+=""+hour(10)+":"
+	if minute(10)<10 :tempstr(10)+="0"+minute(10) : else : tempstr(10)+=""+minute(10)
+	gosub *AddLeadingZero
+	if pts>=1024 : mmplay_opt 3
+	if pts<1024 : mmplay_opt 8
+
+	repeat
+		redraw 0
+		color 200,208,208 : boxf
+		color 0,0,0 : font "",96,1
+		pos 420,8 : mes "RESULT"
+		font "",32
+		pos 360,150
+		mes "    得点"
+		temp=1 : su=0
+		if standing==10 : su=1
+		repeat 10+su
+			if standing==cnt {
+				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
+				if temp<10 {
+					mes ""+temp+".  >> "+pts_result(cnt)+"点"
+				} else {
+					if temp==11 : mes "\n圏外 >> "+pts_result(cnt)+"点" : else : mes ""+temp+".>> "+pts_result(cnt)+"点"
+				}
+			} else {
+				color 0,0,0
+				if temp<10 {
+					mes ""+temp+".  "+pts_result(cnt)+"点"
+				} else {
+					mes ""+temp+"."+pts_result(cnt)+"点"
+				}
+			}
+			temp++
+		loop
+
+		color 0,0,0 : pos 600,150 : mes "日付  /  時刻"
+		temp=1
+		repeat 10+su
+			if standing==cnt {
+				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
+				if temp==11 : mes
+				if temp==1 {
+					mes tempstr(cnt)+" << 記録更新!!"
+				} else {
+					mes tempstr(cnt)+" <<"
+				}
+			} else {
+				color 0,0,0
+				mes tempstr(cnt)
+			}
+			temp++
+		loop
+		if cnt\4==0 {
+			if bckclr>96 : bckclr=32 : else : bckclr=150
+		}
+		redraw 1
+
+		stick key
+		if key&(16|32) : break
+		if key&256 {
+			if mousex>=0 & mousex<scrx & mousey>=0 & mousey<scry : break
+		}
+		await 1000/60
+	loop
+	
+	clrobj
+	repeat
+		redraw 0
+		pos 0,0 : color 200,208,208 : boxf
+		color 0,0,0 : font "",96,1
+		pos 420-cnt*64,8 : mes "RESULT"
+		font "",32
+		pos 360-cnt*64,150
+		mes "    得点"
+		temp=1 : su=0
+		if standing==10 : su=1
+		repeat 10+su
+			if standing==cnt {
+				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
+				if temp<10 {
+					mes ""+temp+".  >> "+pts_result(cnt)+"点"
+				} else {
+					if temp==11 : mes "\n圏外 >> "+pts_result(cnt)+"点" : else : mes ""+temp+".>> "+pts_result(cnt)+"点"
+				}
+			} else {
+				color 0,0,0
+				if temp<10 : mes ""+temp+".  "+pts_result(cnt)+"点" : else : mes ""+temp+"."+pts_result(cnt)+"点"
+			}
+			temp++
+		loop
+
+		color 0,0,0 : pos 600-cnt*64,150 : mes "日付  /  時刻"
+		temp=1
+		repeat 10+su
+			if standing==cnt {
+				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
+				if temp==11 : mes
+				if temp==1 {
+					mes tempstr(cnt)+" << 記録更新!!"
+				} else {
+					mes tempstr(cnt)+" <<"
+				}
+			} else {
+				color 0,0,0
+				mes tempstr(cnt)
+			}
+			temp++
+		loop
+
+		redraw 1
+		if cnt*64>scrx : break
+		await 1000/60
+	loop
+	goto *top
+
+*stopsc // 状態描画
+	if flower<=1 : color 200,208,208
+	if flower>1 | star>0 : color 164,164,164
+	// if flower>1 : color bckclr,bckclr,bckclr
+	boxf
+
+	repeat length(cloudx)
+		if cloudx(cnt)>=-300 && cloudx(cnt)<=scrx {
+			pos cloudx(cnt),cloudy(cnt)
+			if cdspc(cnt)==0 : celput 42,,2,2
+			if cdspc(cnt)==1 : celput 42,,3,3
+			if cdspc(cnt)==2 : celput 43,,2,2
+			if cdspc(cnt)==3 : celput 43,,3,3
+		}
+	loop
+
+	color 255,255,255 : pos 520,300 : font "",100,1
+	mes ""+pts+" 点"
+	pos 300,640 : font "",64
+	mes "タップ位置で上下に移動"
+	gmode 2
+
+	repeat length(enmx)
+		if enmx(cnt)>=-100 && enmx(cnt)<=scrx {
+			pos enmx(cnt),enmy(cnt)
+			if species(cnt)==0 : celput 4
+			if species(cnt)==1 : celput 26
+			if species(cnt)==2 : celput 24
+			if species(cnt)==3 : celput 25
+			if species(cnt)==4 : celput 38,starcol
+			if act(cnt)==1 {
+				act(cnt)=0
+				color 0,0,0
+				boxf enmx(cnt),enmy(cnt),enmx(cnt)+100,enmy(cnt)+100
+			}
+		}
+	loop
+
+	if boss>0 {
+		pos bposx,bposy
+		if bossspc==0 : celput 28,,16,16
+		if bossspc==1 : celput 29,,6,6
+		if bossspc==2 : celput 30
+		if bossspc==3 : celput 31,,2,2
+		if bossspc==4 : celput 32,,0.7,0.7
+		if bossspc==5 : celput 33,,0.7,0.7
+	}
+
+	pos 0,plcy
+	if star<=0 : celput 34
+	if star>=1 : celput 34,starcol
+	
+	if cnt\2==0 {
+		if starcol>=2 || starcol<=0 : scc=-scc
+		starcol+=scc
+	}
+
+	if flower>1 && (lpct&16)=0 : color 255,255,255 : else : color 0,0,0
+	repeat length(bombx)
+		if bombx(cnt)>10 && bombx(cnt)<=scrx {
+			circle bombx(cnt),bomby(cnt),bombx(cnt)+32,bomby(cnt)+32
+		}
+	loop
+
+	repeat length(ebombx)
+		color 0,0,0
+		if ebombx(cnt)>-20 && ebombx(cnt)<=scrx {
+			pos ebombx(cnt),ebomby(cnt)
+			celput 6,,2,2
+		}
+		if bbombx>-50 && bbombx<=scrx {
+			pos bbombx,347
+			celput 6,,4,4
+		}
+		if bbomby>0 {
+			pos scrx/2,bbomby
+			celput 6,,4,4
+		}
+	loop
+
+	pos 0,0 : color 0,0,0 : font "",64
+	mes "Lv." + lv
+	return
 
 *mvbbomb
-	if bbombx<=1280 && bbombx>608 : bbombx-=12
-	if bbombx<=608 : bbombx=1500 : bbomby=347 : bbmpos=plcy+32-13 : bbud=bbmpos-bbomby
+	if bbombx<=scrx && bbombx>scrx/2 : bbombx-=12
+	if bbombx<=scrx/2 : bbombx=scrx+20 : bbomby=(scry-16)/2 : bbmpos=plcy+64/2-16/2 : bbud=bbmpos-bbomby
 	if bbomby>0 {
 		if bbud<0 {
 			bbomby-=16
 			if bbomby<=bbmpos {
-				ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos : ebnum++
+				ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0
 
-				ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos-128 : ebnum++
+				ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-128 : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0
 
-				if bossspc!=4 && bossspc!5 : ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos-256 : ebnum++
+				if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-256 : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0
 
-				if bossspc==2 : ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos-384 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0				
-
-				ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos+128 : ebnum++
+				if bossspc==2 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-384 : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0
 
-				if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos+256 : ebnum++
+				ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+128 : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0
 
-				if bossspc==2 : ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos+384 : ebnum++
+				if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+256 : ebnum++
+				if ebnum>=length(ebombx) : ebnum=0
+
+				if bossspc==2 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+384 : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0
 
 				bbmpos=-1
-				bbombx=1500 : bbomby=-20
+				bbombx=scrx+20 : bbomby=-20
 				ebnum++
 			}
 		} else {
 			bbomby+=16
 			if bbomby>=bbmpos {
-				ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos : ebnum++
+				ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0
 
-				ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos-128 : ebnum++
+				ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-128 : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0
 
-				if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos-256 : ebnum++
+				if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-256 : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0
 
-				if bossspc==2 : ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos-384 : ebnum++
+				if bossspc==2 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-384 : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0				
 
-				ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos+128 : ebnum++
+				ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+128 : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0
 
-				if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos+256 : ebnum++
+				if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+256 : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0
 
-				if bossspc==2 : ebombx(ebnum)=608 : ebomby(ebnum)=bbmpos+384 : ebnum++
+				if bossspc==2 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+384 : ebnum++
 				if ebnum>=length(ebombx) : ebnum=0
 
 				bbmpos=-1
-				bbombx=1500 : bbomby=-20
+				bbombx=scrx+20 : bbomby=-20
 				ebnum++
 			}
 		}
@@ -558,8 +733,8 @@
 	return
 
 *mkenemy // 敵を作る
-	enmy(kai)=rnd(720)-50
-	enmx(kai)=1280
+	enmy(kai)=rnd(scry)-50
+	enmx(kai)=scrx
 	if lv==1 : species(kai)=0
 	if lv==2 : species(kai)=1
 	if lv>=3 && boss<=0 {
@@ -581,19 +756,19 @@
 
 *mvenemy // 敵・アイテム・雲を動かす
 	repeat length(enmx)
-		if enmx(cnt)>=-100 && enmx(cnt)<=1280 : enmx(cnt)-=6
-		if enmx(cnt)<=-100 : enmdmg(cnt)=0 : enmx(cnt)=1300
+		if enmx(cnt)>=-100 && enmx(cnt)<=scrx : enmx(cnt)-=6
+		if enmx(cnt)<=-100 : enmdmg(cnt)=0 : enmx(cnt)=scrx+20
 		if cnt<length(cloudx) {
-			if cloudx(cnt)>=-300 && cloudx(cnt)<=1280 {
+			if cloudx(cnt)>=-300 && cloudx(cnt)<=scrx {
 				if cdspd(cnt)==0 : cloudx(cnt)-=2 : else : cloudx(cnt)-=3
 			}
-			if cloudx(cnt)<-300 : cloudx(cnt)=1300
+			if cloudx(cnt)<-300 : cloudx(cnt)=scrx+20
 		}
 	loop
 	return
 
 *mkcloud // 雲を作る
-	cloudy(cdcnt)=rnd(688) : cloudx(cdcnt)=1280
+	cloudy(cdcnt)=rnd(scry-32) : cloudx(cdcnt)=scrx
 	cdspc(cdcnt)=rnd(4)
 	cdspd(cdcnt)=rnd(2)
 	cdcnt++
@@ -605,13 +780,13 @@
 	mmstop 2
 	if flower<=1 && star<=0 : mmplay_opt 16
 	bossspc=rnd(6)
-	if bossspc==0 : bposx=1280-420 : bposy=150 : bsx=420 : bsy=420 : boss=128 // xy420 3倍 HP64 BFC
-	if bossspc==1 : bposx=1280-512 : bposy=40 : bsx=512 : bsy=640 : boss=128 // x512 y640 2倍 HP64 BSFC
-	if bossspc==2 : bposx=1280-512 : bposy=104 : bsx=512 : bsy=512 : boss=256 // xy512 等倍 HP128 Bnew
-	if bossspc==3 : bposx=1280-520 : bposy=55 : bsx=520 : bsy=610 : boss=64 // x520 y610 2倍 HP32 Jnew
-	if bossspc==4 : bposx=1280-665 : bposy=24 : bsx=665 : bsy=665 : boss=64 // xy665 0.7倍 HP32 bomb
-	if bossspc==5 : bposx=1280-665 : bposy=24 : bsx=665 : bsy=665 : boss=32 // xy665 0.7倍 HP16 bros
-	bpw=boss
+	if bossspc==0 : bsx=512 : bsy=512 : boss=128 // 512x512 x16 HP64 Bowser_FC
+	if bossspc==1 : bsx=384 : bsy=576 : boss=128 // 384x576 x6 HP64 Bowser_SFC
+	if bossspc==2 : bsx=512 : bsy=512 : boss=256 // 512x512 x1 HP128 Bowser_new
+	if bossspc==3 : bsx=520 : bsy=610 : boss=64 // 520x610 x2 HP32 Jr
+	if bossspc==4 : bsx=665 : bsy=665 : boss=64 // 665x665 x0.7 HP32 kingbomb
+	if bossspc==5 : bsx=665 : bsy=665 : boss=32 // 665x665 x0.7 HP16 megabros
+	bposx=scrx-bsx : bposy=(scry-bsy)/2 : bpw=boss
 	if vibrate==0 : devcontrol "vibrate",500
 	return
 	
@@ -628,7 +803,7 @@
 
 *mvbomb // 弾丸を動かす+弾丸が画面外ならx=-128まで飛ばす
 	repeat length(bombx)
-		if bombx(cnt)>10 && bombx(cnt)<=1280 {
+		if bombx(cnt)>10 && bombx(cnt)<=scrx {
 			if flower==0 : bombx(cnt)+=16
 			if flower>=1 : bombx(cnt)+=32
 		} else {
@@ -642,21 +817,21 @@
 		if species(cnt)==2 {
 			life+=2
 			if life>8 : life=8
-			enmx(cnt)=1300
+			enmx(cnt)=scrx+20
 			kill(2)++
 			mmplay_opt 13
 		}
 		if species(cnt)==3 {
 			if flower<=0 : mmstop 2 : mmstop 16 : mmplay_opt 13 : mmplay_opt 14
 			flower+=1800
-			enmx(cnt)=1300
+			enmx(cnt)=scrx+20
 			kill(2)++
 		}
 		if species(cnt)==4 {
 			mmplay_opt 13
 			if star<=0 : mmstop 2 : mmstop 16 : mmplay_opt 15
 			star+=496
-			enmx(cnt)=1300
+			enmx(cnt)=scrx+20
 			kill(2)++
 		}
 		if species(cnt)==0 || species(cnt)==1 {
@@ -671,7 +846,7 @@
 			} else {
 				mmplay_opt 7
 				enmdmg(cnt)=0
-				enmx(cnt)=1300
+				enmx(cnt)=scrx+20
 				kill(species(cnt))++
 			}
 		}
@@ -688,7 +863,7 @@
 			} else {
 				mmplay_opt 7
 				enmdmg(cnt)=0
-				enmx(cnt)=1300
+				enmx(cnt)=scrx+20
 				kill(species(cnt))++
 			}
 		}
@@ -705,7 +880,7 @@
 			} else {
 				mmplay_opt 7
 				enmdmg(cnt)=0
-				enmx(cnt)=1300
+				enmx(cnt)=scrx+20
 				kill(species(cnt))++
 			}
 		}
@@ -713,7 +888,7 @@
 	return
 
 *pbchk // プレイヤの弾の当たり判定 移動前後の軌跡も確認
-	if ebomby(cnt)<plcy+64 && ebomby(cnt)+25>plcy {
+	if ebomby(cnt)<plcy+64 && ebomby(cnt)+16>plcy {
 		if star<=0 {
 			muteki=1
 			life--
@@ -756,19 +931,19 @@
 	return
 
 *shotck // 弾丸の当たり判定(敵)
-	if enmx(a)<=1280 & enmy(a)+100>bomby(b) && enmy(a)<bomby(b)+32 {
+	if enmx(a)<=scrx & enmy(a)+100>bomby(b) && enmy(a)<bomby(b)+32 {
 		mmplay_opt 7
 		enmdmg(a)++
 		if flower>0 : enmdmg(a)+=8
 		act(a)=1
 		if species(a)==0 && enmdmg(a)>=enmpw {
 			enmdmg(a)=0
-			enmx(a)=1300
+			enmx(a)=scrx+20
 			kill(0)++
 		}
 		if species(a)==1 && enmdmg(a)>=enmpw*2 {
 			enmdmg(a)=0
-			enmx(a)=1300
+			enmx(a)=scrx+20
 			kill(1)++
 		}
 		if flower<=0 : bombx(b)=-128
@@ -778,9 +953,9 @@
 *mkebomb // 敵が弾を作る
 	repeat length(enmx)
 		if species(cnt)==0 || species(cnt)==1 {
-			if enmx(cnt)>=300 && enmx(cnt)<=1280 {
-				ebombx(ebnum)=enmx(cnt)-50
-				ebomby(ebnum)=enmy(cnt)+33
+			if enmx(cnt)>=300 && enmx(cnt)<=scrx {
+				ebombx(ebnum)=enmx(cnt)-48
+				ebomby(ebnum)=enmy(cnt)+(100-16)/2
 				ebnum++
 			}
 		}
@@ -790,214 +965,46 @@
 
 *mvebomb // 敵の弾を動かす
 	repeat length(ebombx)
-		if ebombx(cnt)>-50 && ebombx(cnt)<=1280 : ebombx(cnt)-=10
-		if ebombx(cnt)<=-50 : ebombx(cnt)=1300
+		if ebombx(cnt)>-48 && ebombx(cnt)<=scrx : ebombx(cnt)-=10
+		if ebombx(cnt)<=-48 : ebombx(cnt)=scrx+20
 	loop
 	return
 	
 *pause // ポーズ画面
 	mmplay_opt 9
-	objimage 9,0,0
+	objimage 9,,,,128
 	objsize 512,128
-	pos (1280-512)/2,320
+	pos (scrx-512)/2,320
 	button gosub "",*ctn
-	objimage 11,0,0
-	pos (1280-512)/2,320+128
+	objimage 11,,,,128
+	pos (scrx-512)/2,320+128
 	button gosub "",*giveup
 	repeat
 		redraw 0
 		gosub *stopsc
 		color 0,0,0 : font "",128,1
 		pos 420,140 : mes "PAUSE"
-		pos (1280-128*6/5)/2,0 : celput 12,life-1,1.2,1.2
+		pos (scrx-128*6/5)/2,0 : celput 12,life-1,1.2,1.2
 		redraw 1
-		if restart==1 || gvup=1 : break
+		stick key
+		if key&16 : resume=1
+		if key&128 : gvup=1
+		if resume==1 || gvup=1 : break
 		await 1000/60
 	loop
-	restart=0
+	resume=0
 	plcy=last
 	mmplay_opt 9
 	clrobj
 	return
 
 *ctn
-	restart=1
+	resume=1
 	return
 
 *giveup
 	gvup=1
 	return
-
-*gameover // GAMEOVER画面
-	mmstop
-	clrobj
-	if vibrate==0 : devcontrol "vibrate",500
-	mmplay_opt 6
-	repeat
-		redraw 0
-		gosub *stopsc
-		color 0,0,0 : pos 260,280
-		font "",128,1
-		mes "GAMEOVER"
-		await 1000/60
-		if cnt>246 : break
-		redraw 1
-	loop
-	goto *result
-
-*stopsc // 状態描画
-		if flower<=1 : color 200,208,208
-		if flower>1 | star>0 : color 164,164,164
-		// if flower>1 : color bckclr,bckclr,bckclr
-		boxf
-
-		repeat length(cloudx)
-			if cloudx(cnt)>=-300 && cloudx(cnt)<=1280 {
-				pos cloudx(cnt),cloudy(cnt)
-				if cdspc(cnt)==0 : celput 42,,2,2
-				if cdspc(cnt)==1 : celput 42,,3,3
-				if cdspc(cnt)==2 : celput 43,,2,2
-				if cdspc(cnt)==3 : celput 43,,3,3
-			}
-		loop
-
-		color 255,255,255 : pos 520,300 : font "",100,1
-		mes ""+pts+" 点"
-		pos 300,640 : font "",64
-		mes "タップ位置で上下に移動"
-		gmode 2
-
-		repeat length(enmx)
-			if enmx(cnt)>=-100 && enmx(cnt)<=1280 {
-				pos enmx(cnt),enmy(cnt)
-				if species(cnt)==0 : celput 4
-				if species(cnt)==1 : celput 26
-				if species(cnt)==2 : celput 24
-				if species(cnt)==3 : celput 25
-				if species(cnt)==4 : celput 38,starcol
-				if act(cnt)==1 {
-					act(cnt)=0
-					color 0,0,0
-					boxf enmx(cnt),enmy(cnt),enmx(cnt)+100,enmy(cnt)+100
-				}
-			}
-		loop
-
-		if boss>0 {
-			pos bposx,bposy
-			if bossspc==0 : celput 28,,3,3
-			if bossspc==1 : celput 29,,2,2
-			if bossspc==2 : celput 30
-			if bossspc==3 : celput 31,,2,2
-			if bossspc==4 : celput 32,,0.7,0.7
-			if bossspc==5 : celput 33,,0.7,0.7
-		}
-
-		pos 0,plcy
-		if star<=0 : celput 34
-		if star>=1 : celput 34,starcol
-		
-		if cnt\2==0 {
-			if starcol>=2 || starcol<=0 : scc=-scc
-			starcol+=scc
-		}
-
-		if flower>1 && (lpct&16)=0 : color 255,255,255 : else : color 0,0,0
-		repeat length(bombx)
-			if bombx(cnt)>10 && bombx(cnt)<=1280 {
-				circle bombx(cnt),bomby(cnt),bombx(cnt)+32,bomby(cnt)+32
-			}
-		loop
-
-		repeat length(ebombx)
-			color 0,0,0
-			if ebombx(cnt)>-20 && ebombx(cnt)<=1280 {
-				pos ebombx(cnt),ebomby(cnt)
-				celput 6
-			}
-			if bbombx>-50 && bbombx<=1280 {
-				pos bbombx,347
-				celput 6,,2,2
-			}
-			if bbomby>0 {
-				pos 608,bbomby
-				celput 6,,2,2
-			}
-		loop
-
-		pos 0,0 : color 0,0,0 : font "",64
-		mes "Lv." + lv
-
-		return
-
-*result // 結果
-	pts=time+kill(0)*4+kill(1)*8+kill(2)*4+bkpt
-	year(10)=gettime(0) : month(10)=gettime(1) : day(10)=gettime(3) : hour(10)=gettime(4) : minute(10)=gettime(5)
-	gosub *sort // ソートしに行く
-	if year(10)==0 : tempstr(10)="0000/" : else : tempstr(10) = ""+year(10)+"/"
-	if month(10)<10 : tempstr(10)+="0"+month(10)+"/" : else : tempstr(10)+=""+month(10)+"/"
-	if day(10)<10 : tempstr(10)+="0"+day(10)+" " : else : tempstr(10)+=""+day(10)+" "
-	if hour(10)<10 : tempstr(10)+="0"+hour(10)+":" : else : tempstr(10)+=""+hour(10)+":"
-	if minute(10)<10 :tempstr(10)+="0"+minute(10) : else : tempstr(10)+=""+minute(10)
-	gosub *AddLeadingZero
-	if pts>=1024 : mmplay_opt 3
-	if pts<1024 : mmplay_opt 8
-	if standing==10 : objimage 7,0,0 : else : objimage 20,0,0
-	objsize 128,512
-	pos 128,104 : button "",*saving
-
-	repeat
-		redraw 0
-		color 200,208,208 : boxf
-		color 0,0,0 : font "",96,1
-		pos 480,8 : mes "RESULT"
-		font "",32
-		pos 400,150
-		mes "    得点"
-		temp=1 : su=0
-		if standing==10 : su=1
-		repeat 10+su
-			if standing==cnt {
-				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
-				if temp<10 {
-					mes ""+temp+".  >> "+pts_result(cnt)+"点"
-				} else {
-					if temp==11 : mes "\n圏外 >> "+pts_result(cnt)+"点" : else : mes ""+temp+".>> "+pts_result(cnt)+"点"
-				}
-			} else {
-				color 0,0,0
-				if temp<10 {
-					mes ""+temp+".  "+pts_result(cnt)+"点"
-				} else {
-					mes ""+temp+"."+pts_result(cnt)+"点"
-				}
-			}
-			temp++
-		loop
-
-		color 0,0,0 : pos 640,150 : mes "日付  /  時刻"
-		temp=1
-		repeat 10+su
-			if standing==cnt {
-				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
-				if temp==11 : mes
-				if temp==1 {
-					mes tempstr(cnt)+" << 記録更新!!"
-				} else {
-					mes tempstr(cnt)+" <<"
-				}
-			} else {
-				color 0,0,0
-				mes tempstr(cnt)
-			}
-			temp++
-		loop
-		if cnt\4==0 {
-			if bckclr>96 : bckclr=32 : else : bckclr=150
-		}
-		redraw 1
-		await 1000/60
-	loop
 
 *AddLeadingZero
 	repeat 10
@@ -1008,72 +1015,6 @@
 		if minute(cnt)<10 : tempstr(cnt)+="0"+minute(cnt) : else : tempstr(cnt)+=""+minute(cnt)
 	loop
 	return
-
-*edscene
-	clrobj
-	repeat
-		redraw 0
-		pos 0,0 : color 200,208,208 : boxf
-		color 0,0,0 : font "",96,1
-		pos 480-cnt*64,8 : mes "RESULT"
-		font "",32
-		pos 400-cnt*64,150
-		mes "    得点"
-		temp=1 : su=0
-		if standing==10 : su=1
-		repeat 10+su
-			if standing==cnt {
-				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
-				if temp<10 {
-					mes ""+temp+".  >> "+pts_result(cnt)+"点"
-				} else {
-					if temp==11 : mes "\n圏外 >> "+pts_result(cnt)+"点" : else : mes ""+temp+".>> "+pts_result(cnt)+"点"
-				}
-			} else {
-				color 0,0,0
-				if temp<10 : mes ""+temp+".  "+pts_result(cnt)+"点" : else : mes ""+temp+"."+pts_result(cnt)+"点"
-			}
-			temp++
-		loop
-
-		color 0,0,0 : pos 640-cnt*64,150 : mes "日付  /  時刻"
-		temp=1
-		repeat 10+su
-			if standing==cnt {
-				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
-				if temp==11 : mes
-				if temp==1 {
-					mes tempstr(cnt)+" << 記録更新!!"
-				} else {
-					mes tempstr(cnt)+" <<"
-				}
-			} else {
-				color 0,0,0
-				mes tempstr(cnt)
-			}
-			temp++
-		loop
-
-		pos 128-cnt*64,104
-		if standing==10 : gcopy 7,,,128,512 : else : gcopy 20,,,128,512
-
-		redraw 1
-		if cnt*64>1196 : break
-		await 1000/60
-	loop
-	goto *top
-
-*saving
-	if standing==10 : goto *edscene
-	bsave "save.bin",pts_result // 得点の記録(int[10]; 4byte*10)
-	bsave "save.bin",year,4*10,4*10 // 年の記録(int[10]; 4byte*10)
-	bsave "save.bin",month,4*10,4*10*2 // 月の記録(int[10]; 4byte*10)
-	bsave "save.bin",day,4*10,4*10*3 // 日の記録(int[10]; 4byte*10)
-	bsave "save.bin",hour,4*10,4*10*4 // 時の記録(int[10]; 4byte*10)
-	bsave "save.bin",minute,4*10,4*10*5 // 分の記録(int[10]; 4byte*10)
-	bsave "save.bin",vibrate,4,240 // バイブレーションの設定(int; 4byte)
-	bsave "save.bin",keyboardmode,4,244 // オート・マニュアルの設定(int; 4byte)
-	goto *edscene
 
 *sort
 	pts_result(10)=pts : standing=10
@@ -1111,204 +1052,157 @@
 *options
 	mmstop
 	mmplay_opt 12
-
 *option
 	cls
-	objimage 47,0,0 : objsize 512,128 : pos (1280-512)/2,180
-	button "",*delopt
-	objimage 44,0,0 : pos (1280-512)/2,180+128
-	button "",*automanual
-	objimage 49,0,0 : pos (1280-512)/2,180+128+128
-	button"",*vibset
-	objimage 23,0,0 : objsize 256,128 : pos 0,720-128
-	button "",*top
+	objimage 47,,,,128 : objsize 512,128 : pos (scrx-512)/2,180
+	button gosub "",*btn_1
+	objimage 44,,,,128 : pos (scrx-512)/2,180+128
+	button gosub "",*btn_2
+	objimage 49,,,,128 : pos (scrx-512)/2,180+128+128
+	button gosub "",*btn_3
+	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128
+	button gosub "",*btn_back
 	repeat
 		redraw 0
-			pos 0,0 : color 0,0,0 : boxf
-			pos 140,32 : font "",64 : color 0,255,0
-			mes "設定する項目を選択してください"
+		pos 0,0 : color 0,0,0 : boxf
+		pos 140,32 : font "",64 : color 0,255,0
+		mes "設定する項目を選択してください"
 		redraw 1
+		if opt1 | opt2 | opt3 | is_back : break
 		await 1000/60
 	loop
-	goto *top
+	if opt1 : opt1=0 : goto *delopt
+	if opt2 : opt2=0 : goto *automanual
+	if opt3 : opt3=0 : goto *vibset
+	if is_back : is_back=0 : goto *top
 
 *vibset
 	cls
-	objimage 50,0,0 : objsize 512,128 : pos (1280-512)/2,180
+	objimage 50,,,,128 : objsize 512,128 : pos (scrx-512)/2,180
 	button gosub "",*enableset
-	objimage 51,0,0 : pos (1280-512)/2,180+128
+	objimage 51,,,,128 : pos (scrx-512)/2,180+128
 	button gosub "",*disableset
-	objimage 52,0,0 : pos (1280-512)/2,180+128+128
+	objimage 52,,,,128 : pos (scrx-512)/2,180+128+128
 	button gosub "",*hellset
-
-	objimage 23,0,0 : objsize 256,128 : pos 0,720-128
-	button "",*option
-
+	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128
+	button gosub "",*btn_back
 	repeat
 		redraw 0
-			pos 0,0 : color 0,0,0 : boxf
-			pos 280,32 : font "",64 : color 0,255,0
-			mes "項目を選択してください"
-			pos 380,600
-			if vibrate==0 {
-				mes "現在の設定: 有効"
-			} else : if vibrate==1 {
-				mes "現在の設定: 無効"
-			} else : if vibrate==2 {
-				mes "現在の設定: 振動地獄"
-			}
+		pos 0,0 : color 0,0,0 : boxf
+		pos 280,32 : font "",64 : color 0,255,0
+		mes "項目を選択してください"
+		pos 380,600
+		if vibrate==0 {
+			mes "現在の設定: 有効"
+		} else : if vibrate==1 {
+			mes "現在の設定: 無効"
+		} else : if vibrate==2 {
+			mes "現在の設定: 振動地獄"
+		}
 		redraw 1
+		if is_back : break
 		await 1000/60
 	loop
+	is_back=0
+	goto *option
 
 *enableset
 	vibrate=0
-	exist "save.bin"
-	if strsize!=-1 {
-		bsave "save.bin",vibrate,4,240
-	} else {
-		bsave "save.bin",pts_result // 得点の記録(int[10]; 4byte*10)
-		bsave "save.bin",year,4*10,4*10 // 年の記録(int[10]; 4byte*10)
-		bsave "save.bin",month,4*10,4*10*2 // 月の記録(int[10]; 4byte*10)
-		bsave "save.bin",day,4*10,4*10*3 // 日の記録(int[10]; 4byte*10)
-		bsave "save.bin",hour,4*10,4*10*4 // 時の記録(int[10]; 4byte*10)
-		bsave "save.bin",minute,4*10,4*10*5 // 分の記録(int[10]; 4byte*10)
-		bsave "save.bin",vibrate,4,240 // バイブレーションの設定(int; 4byte)
-		bsave "save.bin",keyboardmode,4,244 // オート・マニュアルの設定(int; 4byte)
-	}
+	gosub *save
 	return
 
 *disableset
 	vibrate=1
-	if strsize!=-1 {
-		bsave "save.bin",vibrate,4,240
-	} else {
-		bsave "save.bin",pts_result // 得点の記録(int[10]; 4byte*10)
-		bsave "save.bin",year,4*10,4*10 // 年の記録(int[10]; 4byte*10)
-		bsave "save.bin",month,4*10,4*10*2 // 月の記録(int[10]; 4byte*10)
-		bsave "save.bin",day,4*10,4*10*3 // 日の記録(int[10]; 4byte*10)
-		bsave "save.bin",hour,4*10,4*10*4 // 時の記録(int[10]; 4byte*10)
-		bsave "save.bin",minute,4*10,4*10*5 // 分の記録(int[10]; 4byte*10)
-		bsave "save.bin",vibrate,4,240 // バイブレーションの設定(int; 4byte)
-		bsave "save.bin",keyboardmode,4,244 // オート・マニュアルの設定(int; 4byte)
-	}
+	gosub *save
 	return
 
 *hellset
 	vibrate=2
-	if strsize!=-1 {
-		bsave "save.bin",vibrate,4,240
-	} else {
-		bsave "save.bin",pts_result // 得点の記録(int[10]; 4byte*10)
-		bsave "save.bin",year,4*10,4*10 // 年の記録(int[10]; 4byte*10)
-		bsave "save.bin",month,4*10,4*10*2 // 月の記録(int[10]; 4byte*10)
-		bsave "save.bin",day,4*10,4*10*3 // 日の記録(int[10]; 4byte*10)
-		bsave "save.bin",hour,4*10,4*10*4 // 時の記録(int[10]; 4byte*10)
-		bsave "save.bin",minute,4*10,4*10*5 // 分の記録(int[10]; 4byte*10)
-		bsave "save.bin",vibrate,4,240 // バイブレーションの設定(int; 4byte)
-		bsave "save.bin",keyboardmode,4,244 // オート・マニュアルの設定(int; 4byte)
-	}
+	gosub *save
 	return
 
 *automanual
 	cls
-	objimage 46,0,0 : objsize 512,128 : pos (1280-512)/2,180
+	objimage 46,,,,128 : objsize 512,128 : pos (scrx-512)/2,180
 	button gosub "",*manualset
-	objimage 45,0,0 : pos (1280-512)/2,180+128
+	objimage 45,,,,128 : pos (scrx-512)/2,180+128
 	button gosub "",*autoset
-	objimage 23,0,0 : objsize 256,128 : pos 0,720-128
-	button "",*option
+	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128
+	button gosub "",*btn_back
 	repeat
 		redraw 0
-			pos 0,0 : color 0,0,0 : boxf
-			pos 280,32 : font "",64 : color 0,255,0
-			mes "項目を選択してください"
-			pos 300,570
-			if keyboardmode==0 : mes "現在の設定: マニュアル連射" : else : mes "現在の設定: オート連射"
+		pos 0,0 : color 0,0,0 : boxf
+		pos 280,32 : font "",64 : color 0,255,0
+		mes "項目を選択してください"
+		pos 300,570
+		if keyboardmode==0 : mes "現在の設定: マニュアル連射" : else : mes "現在の設定: オート連射"
 		redraw 1
+		if is_back : break
 		await 1000/60
 	loop
+	is_back=0
+	goto *option
 
 *manualset
 	keyboardmode=0
-	if strsize!=-1 {
-		bsave "save.bin",keyboardmode,4,244
-	} else {
-		bsave "save.bin",pts_result // 得点の記録(int[10]; 4byte*10)
-		bsave "save.bin",year,4*10,4*10 // 年の記録(int[10]; 4byte*10)
-		bsave "save.bin",month,4*10,4*10*2 // 月の記録(int[10]; 4byte*10)
-		bsave "save.bin",day,4*10,4*10*3 // 日の記録(int[10]; 4byte*10)
-		bsave "save.bin",hour,4*10,4*10*4 // 時の記録(int[10]; 4byte*10)
-		bsave "save.bin",minute,4*10,4*10*5 // 分の記録(int[10]; 4byte*10)
-		bsave "save.bin",vibrate,4,240 // バイブレーションの設定(int; 4byte)
-		bsave "save.bin",keyboardmode,4,244 // オート・マニュアルの設定(int; 4byte)
-	}
+	gosub *save
 	return
 
 *autoset
 	keyboardmode=1
-	if strsize!=-1 {
-		bsave "save.bin",keyboardmode,4,244
-	} else {
-		bsave "save.bin",pts_result // 得点の記録(int[10]; 4byte*10)
-		bsave "save.bin",year,4*10,4*10 // 年の記録(int[10]; 4byte*10)
-		bsave "save.bin",month,4*10,4*10*2 // 月の記録(int[10]; 4byte*10)
-		bsave "save.bin",day,4*10,4*10*3 // 日の記録(int[10]; 4byte*10)
-		bsave "save.bin",hour,4*10,4*10*4 // 時の記録(int[10]; 4byte*10)
-		bsave "save.bin",minute,4*10,4*10*5 // 分の記録(int[10]; 4byte*10)
-		bsave "save.bin",vibrate,4,240 // バイブレーションの設定(int; 4byte)
-		bsave "save.bin",keyboardmode,4,244 // オート・マニュアルの設定(int; 4byte)
-	}
+	gosub *save
 	return
 
 *delopt
 	cls
 	b=0
-	objimage 48,0,0 : objsize 128,128 : pos 64,64
-	button gosub "",*del
-	objimage 23,0,0 : objsize 256,128 : pos 0,720-128
-	button "",*option
+	objimage 48,,,128 : objsize 128,128 : pos 64,64
+	button gosub "",*btn_del
+	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128
+	button gosub "",*btn_back
 	gosub *AddLeadingZero
-	while b!=1
+	repeat
 		redraw 0
-			pos 0,0 : color 0,0,0 : boxf
-			color 0,255,0 : font "",64 : pos 64,192 : mes "削除"
-			pos 500,24 : mes "現在の記録"
+		pos 0,0 : color 0,0,0 : boxf
+		color 0,255,0 : font "",64 : pos 64,192 : mes "削除"
+		pos 500,24 : mes "現在の記録"
 
-			font "",32
-			pos 400,150 : mes "    得点" : temp=1
-			repeat 10
-				if temp<10 : mes ""+temp+".  "+pts_result(cnt)+"点" : else : mes ""+temp+"."+pts_result(cnt)+"点"
-				temp++
-			loop
+		font "",32
+		pos 400,150 : mes "    得点" : temp=1
+		repeat 10
+			if temp<10 : mes ""+temp+".  "+pts_result(cnt)+"点" : else : mes ""+temp+"."+pts_result(cnt)+"点"
+			temp++
+		loop
 
-			pos 680,150 : mes "日付  /  時刻"
-			repeat 10
-				mes tempstr(cnt)
-			loop
+		pos 680,150 : mes "日付  /  時刻"
+		repeat 10
+			mes tempstr(cnt)
+		loop
 		redraw 1
+		if b | is_back : break
 		await 16
-	wend
+	loop
+	if is_back : is_back=0 : goto *option
 
 	b=0 : cls
-	objimage 23,0,0 : objsize 256,128 : pos 0,720-128
-	button "",*delopt
-	objimage 22,0,0 : objsize 512,128 : pos (1280-512)/2,320
-	button gosub "",*del
-	while b!=1
+	objimage 48,,,128 : objsize 128,128 : pos (scrx-128)/2,320
+	button gosub "",*btn_del
+	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128
+	button gosub "",*btn_back
+	repeat
 		redraw 0
-			pos 0,0 : color 0,0,0 : boxf
-			pos 120,64 : font "",64 : color 0,255,0
-			mes "記録は削除すると元に戻せません!!\n続行しますか?"
+		pos 0,0 : color 0,0,0 : boxf
+		pos 100,64 : font "",64 : color 0,255,0
+		mes "記録は削除すると元に戻せません！！\n続行しますか？"
 		redraw 1
+		if b | is_back : break
 		await 16
-	wend
+	loop
+	if is_back : is_back=0 : goto *delopt
+
 	cls
-	temp=0
-	bsave "save.bin",temp
-	bsave "save.bin",vibrate,4,240 // バイブレーションの設定(int; 4byte)
-	bsave "save.bin",keyboardmode,4,244 // オート・マニュアルの設定(int; 4byte)
 	dim pts_result,11 : dim year,11 : dim month,11 : dim day,11 : dim hour,11 : dim minute,11
+	gosub *save
 	redraw 0
 		pos 0,0 : color 0,0,0 : boxf
 		pos 120,64 : font "",64
@@ -1318,8 +1212,35 @@
 	await 1000
 	goto *option
 
-*del
+*btn_del
 	b=1
+	return
+
+*btn_1
+	opt1=1
+	return
+
+*btn_2
+	opt2=1
+	return
+
+*btn_3
+	opt3=1
+	return
+
+*btn_back
+	is_back=1
+	return
+
+*save
+	bsave "save.bin",pts_result // 得点の記録(int[10]; 4byte*10)
+	bsave "save.bin",year,4*10,4*10 // 年の記録(int[10]; 4byte*10)
+	bsave "save.bin",month,4*10,4*10*2 // 月の記録(int[10]; 4byte*10)
+	bsave "save.bin",day,4*10,4*10*3 // 日の記録(int[10]; 4byte*10)
+	bsave "save.bin",hour,4*10,4*10*4 // 時の記録(int[10]; 4byte*10)
+	bsave "save.bin",minute,4*10,4*10*5 // 分の記録(int[10]; 4byte*10)
+	bsave "save.bin",vibrate,4,240 // バイブレーションの設定(int; 4byte)
+	bsave "save.bin",keyboardmode,4,244 // オート・マニュアルの設定(int; 4byte)
 	return
 
 // 音声ファイルが存在する場合のみ mmload する
