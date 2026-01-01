@@ -333,14 +333,14 @@
 		quick=0
 
 		getkey shiftkey,16
-		stick key,2|4|8
-		if key&2 {
+		stick key,2|4|8|32768|65536|131072
+		if key&(2|32768) {
 			if shiftkey : plcy-=8 : else : plcy-=16
 		}
-		if key&8 {
+		if key&(8|131072) {
 			if shiftkey : plcy+=8 : else : plcy+=16
 		}
-		if key&4 {
+		if key&(4|65536) {
 			quick=1
 			if BkQuick==0 : tppt=lpct+1
 		}
