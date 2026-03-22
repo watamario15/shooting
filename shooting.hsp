@@ -17,31 +17,28 @@
 	info_os=sysinfo(0)
 	if instr(info_os,0,"iOS")=-1 & instr(info_os,0,"android")=-1 & instr(info_os,0,"Emscripten")=-1 : assets_dir="data/" : else : assets_dir=""
 
-	dim pts_result,11 : dim year,11 : dim month,11 : dim day,11 : dim hour,11 : dim minute,11
+	dim pts_result,11 : dim year,11 : dim month,11 : dim day,11 : dim hour,11 : dim minute,11 : sdim tempstr,32,11
 	keyboardmode=0 : vibrate=0 : scrx=1280 : scry=720
-	sdim tempstr,32,11
 
 	// 画像の登録
-	exist assets_dir+"bg.jpg"
-	if strsize!-1 : use_bg=1 : celload assets_dir+"bg.jpg",1 : else : use_bg=0
 	celload assets_dir+"white.png",2
-	celload assets_dir+"enemy.png",4
+	celload assets_dir+"enemy1.png",4
 	celload assets_dir+"fire.png",6
 	celload assets_dir+"pause.png",8
 	celload assets_dir+"shoot.png",10
 	celload assets_dir+"life.png",12 : celdiv 12,128,128
 	celload assets_dir+"lifeup.png",24
 	celload assets_dir+"special.png",25
-	celload assets_dir+"shell.png",26
+	celload assets_dir+"enemy2.png",26
 	celload assets_dir+"grey.png",27
 	celload assets_dir+"bowser1.png",28
 	celload assets_dir+"bowser2.png",29
 	celload assets_dir+"bowser3.png",30
 	celload assets_dir+"jr.png",31
 	celload assets_dir+"kingbomb.png",32
-	celload assets_dir+"megabros.png",33
-	celload assets_dir+"player.png",34 : celdiv 34,128,64
-	celload assets_dir+"star.png",38 : celdiv 38,100,100
+	celload assets_dir+"sledgebro.png",33
+	celload assets_dir+"player.png",34 : celdiv 34,32,16
+	celload assets_dir+"invincible.png",38 : celdiv 38,16,16
 	celload assets_dir+"cloud1.png",42
 	celload assets_dir+"cloud2.png",43
 	buffer 9 : pos 0,0 : picload assets_dir+"continue.png",1
@@ -84,16 +81,17 @@
 	title "Simple STG"
 
 	// 変数の初期化
-	dim enmx,32 : dim enmy,32 : dim bombx,32 : dim bomby,32 : dim enmdmg,32 : dim cloudx,16
-	dim act,32 : dim ebombx,16 : dim ebomby,16 : dim species,32 : dim kill,3 : dim cloudy,16
-	dim cdspc,16 : dim cdspd,16
+	dim enmx,32 : dim enmy,32 : dim bombx,32 : dim bomby,32 : dim enmdmg,32 : dim act,32 : dim cloudx,16
+	dim ebombx,16 : dim ebomby,16 : dim species,32 : dim kill,3 : dim cdspc,16 : dim cdspd,16 : dim cloudy,16
 	pts=0 : psb=0 : kai=0 : lpct=0 : b=0 : a=0 : plcy=0 : life=8 : muteki=0 : mstartpoint=0 : mkcdt=0
-	pst=0 : time=0 : lv=1 : enmnm=1 : enmpw=1 : su=0 : quick=0 : flash=0 : mkenmt=0 : bkpt=0 : bkt=0
-	last=0 : itmt=rnd(620) : bckclr=0 : starcol=1 : scc=1 : star=0 : flower=0 : redboss=0 : boss=0
-	bbombx=1500 : bbomby=-20 : bbmpos=-1 : rest=0 : toopt=0 : scranime=0 : tppt=0
-	repeat length(enmx)
-		enmx(cnt)=scrx+20 : cloudx(cnt)=scrx+20 : ebombx(cnt)=1500 : ebomby(cnt)=-20 : bombx(cnt)=-200
-		bomby(cnt)=-1.0
+	pst=0 : time=0 : lv=1 : enmnm=1 : enmpw=1 : su=0 : quick=0 : mkenmt=0 : bkpt=0 : bkt=0
+	last=0 : itmt=rnd(600) : bckclr=0 : starcol=1 : scc=1 : star=0 : flower=0 : redboss=0 : boss=0
+	bbombx=1500 : bbomby=-20 : bbmpos=-1 : rest=0 : toopt=0 : scranime=0 : tppt=0 : cdcnt=0
+	repeat 32
+		enmx(cnt)=scrx+20 : bombx(cnt)=-200
+	loop
+	repeat 16
+		cloudx(cnt)=scrx+20 : ebombx(cnt)=1500 : ebomby(cnt)=-20
 	loop
 
 	// セーブデータの読み込み
@@ -112,21 +110,8 @@
 
 	repeat
 		redraw 0
-		if use_bg : pos 0,0 : celput 1
-		pos 290,60 : color 0,0,0 : font "",99,1
-		mes "シューティング"
-		font "",64,,4 : objcolor 255,255,255
-		pos 350,235 : mes "-- TAP TO START --", mesopt_outline
-		pos scrx-128,scry-128 : gcopy 21,,,128,128
-		gmode 3,,,200 : pos (scrx-768)/2,400
-		celput 2
-		gmode 2 : pos (scrx-768)/2+12,404 : font "",24
-		if pts_result(0)<=0 : mes "最高記録: なし" : else : mes "最高記録: "+pts_result(0)+" 点"
-		mes "\n飛んでくる敵を撃ち落としてください。"
-		mes "タップで上下に移動し、Shoot!ボタンで弾を撃ちます。"
-		mes "アイテムを取ると、少し良いことが起こります。"
-		mes "レベルは10秒ごとに8まで上がります。"
-		mes "得点は耐久時間、撃破数、アイテムの取得数で算出します。"
+		gosub *draw_title
+		pos 350,235 : font "",64,,4 : objcolor 255,255,255 : mes "-- TAP TO START --", mesopt_outline
 		redraw 1
 		stick key
 		if key&(16|32) : break
@@ -139,199 +124,48 @@
 		await 1000/60
 	loop
 
-	mmplay_opt 18
-	clrobj
+	mmplay_opt 18 : clrobj
 	repeat // ここのposを変数にしてアニメーション
 		redraw 0
-		if toopt==0 {
-			color 200,208,208
-			scranime=-cnt
-		} else {
-			color 0,0,0
-			scranime=cnt
-		}
+		if toopt==0 : color 200,208,208 : scranime=-cnt : else : color 0,0,0 : scranime=cnt
 		boxf
-		if use_bg : pos scranime*64,0 : celput 1
-		pos 290+scranime*64,60 : color 0,0,0 : font "",99,1
-		mes "シューティング"
-		pos scrx-128+scranime*64,scry-128 : gcopy 21,128*toopt,0,128,128
-		gmode 3,,,200 : pos (scrx-768)/2+scranime*64,400
-		celput 2
-		gmode 2 : pos (scrx-768)/2+12+scranime*64,404 : font "",24
-		if pts_result(0)<=0 : mes "最高記録: なし" : else : mes "最高記録: "+pts_result(0)+" 点"
-		mes "\n飛んでくる敵を撃ち落としてください。"
-		mes "タップで上下に移動し、Shoot!ボタンで弾を撃ちます。"
-		mes "アイテムを取ると、少し良いことが起こります。"
-		mes "レベルは10秒ごとに8まで上がります。"
-		mes "得点は耐久時間、撃破数、アイテムの取得数で算出します。"
+		gosub *draw_title
 		if cnt*64>scrx : break
 		redraw 1
 		await 1000/60
 	loop
+	scranime=0
 	if toopt!=0 : goto *options
 
 	mmstop : clrobj
 	repeat 3
 		mmplay_opt 4
 		redraw 0
-		gosub *stopsc
-		font "",128,1
-		pos 600,280 : color 0,0,0 : mes 3-cnt
-		pos (scrx-128*6/5)/2,0 : celput 12,life-1,1.2,1.2
+		gosub *draw_game
+		font "",128,1 : color 0,0,0 : pos 600,280 : mes 3-cnt
 		redraw 1
 		await 1000
 	loop
 	mmplay_opt 0 : mmplay_opt 2
-*main // メインループ
-	repeat
+
+	repeat // メインループ
 		title "Simple STG - " + time + "秒 椎茸" + kill(0) + "本 亀" + kill(1) + "匹 ボス" + bkt + "体"
-		star_bef=star : flower_bef=flower
+
 		redraw 0
-		
-		// 背景色の描画
-		/*
-		if flower>1 {
-			if bckclr>200 : bckclr=200 : bckchg=-2
-			if bckclr<50 : bckclr=50 : bckchg=2
-			if flower>300 : bckclr+=bckchg : else : bckclr+=bckchg*4
-			color bckclr,bckclr,bckclr
-		} else {
-			if star>0 : color 164,164,164 : else : color 200,208,208
-		}
-		*/
-		if flower>1 | star>0 : color 164,164,164 : else : color 200,208,208
-		boxf
-
-		// 雲を表示
-		repeat length(cloudx)
-			if cloudx(cnt)>=-300 && cloudx(cnt)<=scrx {
-				pos cloudx(cnt),cloudy(cnt)
-				if cdspc(cnt)==0 : celput 42,,2,2
-				if cdspc(cnt)==1 : celput 42,,3,3
-				if cdspc(cnt)==2 : celput 43,,2,2
-				if cdspc(cnt)==3 : celput 43,,3,3
-			}
-		loop
-
-		// 各種情報を表示
-		pts=time+kill(0)*4+kill(1)*8+kill(2)*4+bkpt
-		color 255,255,255 : pos 520,300 : font "",100,1
-		mes ""+pts+" 点"
-		pos 160,640 : font "",64
-		mes "タップ位置で上下に移動"
-		gmode 2
-
-		// 画面内の敵・アイテムを表示
-		gosub *mvenemy
-		repeat length(enmx)
-		if enmx(cnt)>=-100 && enmx(cnt)<=scrx { // 画面外なら飛ばしてもう一度ループ
-			pos enmx(cnt),enmy(cnt)
-			if species(cnt)==0 : celput 4
-			if species(cnt)==1 : celput 26
-			if species(cnt)==2 : celput 24
-			if species(cnt)==3 : celput 25
-			if species(cnt)==4 : celput 38,starcol
-			if act(cnt)==1 {
-				act(cnt)=0
-				color 0,0,0
-				boxf enmx(cnt),enmy(cnt),enmx(cnt)+100,enmy(cnt)+100
-			}
-			if species(cnt)==0 || species(cnt)==1 {
-				color 150,150,150 : boxf enmx(cnt)+8,enmy(cnt)+84,enmx(cnt)+90,enmy(cnt)+96
-				color 64,64,64
-				if species(cnt)==0 : boxf enmx(cnt)+13,enmy(cnt)+86,enmx(cnt)+72*(enmpw-enmdmg(cnt))/enmpw+13,enmy(cnt)+93
-				if species(cnt)==1 : boxf enmx(cnt)+13,enmy(cnt)+86,enmx(cnt)+72*(enmpw*2-enmdmg(cnt))/(enmpw*2)+13,enmy(cnt)+93
-			}
-		}
-		loop
-
-		// ボスを表示
-		if boss>0 {
-			pos bposx,bposy
-			if bossspc==0 : celput 28,,16,16
-			if bossspc==1 : celput 29,,6,6
-			if bossspc==2 : celput 30
-			if bossspc==3 : celput 31,,2,2
-			if bossspc==4 : celput 32,,0.7,0.7
-			if bossspc==5 : celput 33,,0.7,0.7
-			bpbarpy=bposy+bsy-64
-			if bpbarpy>scrx-256-64 : bpbarpy=scrx-256-64
-			color 150,150,150 : boxf bposx+32,bpbarpy-32,bposx+bsx-32,bpbarpy
-			if redboss>0 : color 196,196,196 : else : color 64,64,64
-			boxf bposx+36,bpbarpy-28,(bsx-72)*boss/bpw+bposx+36,bpbarpy-4
-		}
-		if redboss>0 : redboss--
-
-		// プレイヤの表示
-		if muteki!=1 || lpct\4==1 {
-			if plcy<0 : plcy=0
-			if plcy>656 : plcy=656
-			pos 0,plcy
-			if star<=0 : celput 34
-			if star>=124 : celput 34,starcol
-			if star>0 && star<124 {
-				if lpct\10<5 : celput 34,3 : else : celput 34
-			}
-		}
-		if lpct\2==0 {
-			if starcol>=2 || starcol<=0 : scc=-scc
-			starcol+=scc
-		}
-		if flower>1 {
-			color 150,150,150 : boxf plcx+8,plcy+64,plcx+128-8,plcy+76
-			color 64,64,64 : boxf plcx+13,plcy+66,plcx+(128-26)*flower/1800+13,plcy+74
-		}
-		if star>1 {
-			color 150,150,150 : boxf plcx+8,plcy+76,plcx+128-8,plcy+88
-			color 64,64,64 : boxf plcx+13,plcy+78,plcx+(128-26)*star/496+13,plcy+86
-		}
-
-		// 弾丸の表示
-		if keyboardmode==1 : quick=1 // PC 用
-		if quick==1 && (lpct-tppt)\5==0 : gosub *mkbomb
-		if flower>1 && (lpct&16)=0 : color 255,255,255 : else : color 0,0,0
-		gosub *mvbomb
-		repeat length(bombx)
-			if bombx(cnt)>10 && bombx(cnt)<=scrx : circle bombx(cnt),bomby(cnt),bombx(cnt)+32,bomby(cnt)+32
-		loop
-
-		// 敵の弾の表示
-		gosub *mvbbomb
-		gosub *mvebomb
-		repeat length(ebombx)
-			color 0,0,0
-			if ebombx(cnt)>-48 && ebombx(cnt)<=scrx {
-				pos ebombx(cnt),ebomby(cnt)
-				celput 6,,2,2
-			}
-			if bbombx>-48 && bbombx<=scrx {
-				pos bbombx,347
-				celput 6,,4,4
-			}
-			if bbomby>0 {
-				pos scrx/2,bbomby
-				celput 6,,4,4
-			}
-		loop
-
+		gosub *draw_game
+		pos 160,640 : font "",64 : mes "タップ位置で上下に移動"
 		// ボタン表示
-		if quick==1 : gmode 3,,,150 : pos scrx-256,0 : gcopy 27,0,0,256,128
+		if quick==1 : gmode 3,,,150 : pos scrx-256,0 : celput 27,,256,128
 		gmode 2 : pos scrx-256,0 : celput 10
 		pos scrx-256,scry-128 : celput 8
-
-		// LIFE表示
-		pos (scrx-128*6/5)/2,0 : celput 12,life-1,1.2,1.2
-
-		// Level表示
-		pos 0,0 : color 0,0,0 : font "",64
-		mes "Lv." + lv
-
 		redraw 1
 
-		// 操作受付
-		BkQuick=quick
-		quick=0
+		star_bef=star : flower_bef=flower
+		pts=time+kill(0)*4+kill(1)*8+kill(2)*4+bkpt
+		if redboss>0 : redboss--
 
+		// 操作受付
+		BkQuick=quick : quick=0
 		getkey shiftkey,16
 		stick key,2|4|8|32768|65536|131072
 		if key&(2|32768) {
@@ -345,7 +179,6 @@
 			if BkQuick==0 : tppt=lpct+1
 		}
 		if key&16 : gopause=1
-
 		mtlist tapid : tapnum=stat // タップ数
 		repeat tapnum
 			id=tapid(cnt)
@@ -356,69 +189,67 @@
 			} else : if scrx-256<tap(1) && scry-128<tap(2) {
 				gopause=1
 			} else {
-				plcy=tap(2)-32
+				plcy=tap(2)-64/2
 			}
 		loop
 
+		if keyboardmode==1 : quick=1  // 自動連射
 		if plcy<0 : plcy=0
-		if plcy>656 : plcy=656
+		if plcy>scry-64 : plcy=scry-64
 		if gopause==1 : gopause=0 : gosub *pause
 		if gvup==1 : break
 
+		gosub *mvenemy
+		if quick==1 && (lpct-tppt)\5==0 : gosub *mkbomb
+		gosub *mvbomb
+		gosub *mvbbomb
+		gosub *mvebomb
+
 		// 弾丸の当たり判定
 		repeat
-			if species(a)==0 || species(a)==1 {
-				if enmx(a)<bombx(b)+32 && enmx(a)+100>bombx(b) : gosub *shotck
-			}
+			if (species(a)==0 || species(a)==1) && enmx(a)<bombx(b)+32 && enmx(a)+96>bombx(b) : gosub *shotck
 			b++
 			if b>=length(bombx) : b=0 : a++
 			if a>=length(enmx) : a=0 : b=0 : break
 		loop
 		if boss>0 {
 			repeat length(bombx)
-				if bposx<bombx(cnt)+32 && bposx+bsx>bombx(cnt) {
-					if bposy+bsy>bomby(cnt) && bposy<bomby(cnt)+32 {
-						mmplay_opt 7
-						if flower>0 : boss-=8 : else : boss--
-						bombx(cnt)=-128
-						redboss=4
-						if boss<=0 {
-							mmplay_opt 17
-							boss=0
-							bposx=scrx+20
-							bkpt+=bpw/2
-							bkt++
-							bktime=lpct
-							rest=186
-							mmstop 16
-							if star<=0 && flower<=1 : mmplay_opt 2
-							if vibrate==0 : devcontrol "vibrate",500
-						}
+				if bposx<bombx(cnt)+32 && bposx+bsx>bombx(cnt) && bposy+bsy>bomby(cnt) && bposy<bomby(cnt)+32 {
+					mmplay_opt 7
+					if flower>0 : boss-=8 : else : boss--
+					bombx(cnt)=-256
+					redboss=4
+					if boss<=0 {
+						mmstop 16 : mmplay_opt 17
+						boss=0
+						bposx=scrx+20
+						bkpt+=bpw/2 : bkt++ : bktime=lpct
+						rest=180
+						if star<=0 && flower<=1 : mmplay_opt 2
+						if vibrate==0 : devcontrol "vibrate",500
 					}
 				}
 			loop
 		}
 
-		//自分の当たり判定
+		// 自分の当たり判定
 		repeat length(enmx)
-			if muteki==0 || star>0 || species(cnt)>=2 {
-				if enmx(cnt)<128 : gosub *pechk
-			}
+			if muteki==0 || star>0 || species(cnt)>=2 : gosub *pechk
 			if life<=0 : break
-			if muteki==0 || star>0 {
-				if ebombx(cnt)<128 : gosub *pbchk
-			}
+		loop
+		repeat length(ebombx)
+			if muteki==0 || star>0 : gosub *pbchk
 			if life<=0 : break
 		loop
 		if life<0 : life=0
-
 		if life<=0 : break
-		if vibrate==2 && lpct\64==0 : devcontrol "vibrate",1200
+
+		if vibrate==2 && lpct\60==0 : devcontrol "vibrate",1200
 		await 1000/60
 		
 		last=plcy
 		lpct++
-		if muteki==1 && lpct-mstartpoint>=124 : muteki=0 : flash=0
+		if muteki==1 && lpct-mstartpoint>=120 : muteki=0
 		if star>=1 : star--
 		if flower>=1 : flower--
 		if star_bef>0 && star<=0 {
@@ -431,37 +262,35 @@
 			if star<=0 && boss<=0 : mmplay_opt 2
 			if star<=0 && boss>0 : mmplay_opt 16
 		}
-		if lpct\62==0 : time++
+		if lpct\60==0 : time++
 		if (boss>0 && bossspc!=2) || rest>0 : mkenmt=lpct+1
 		if mkenmt<=lpct || itmt<=lpct : gosub *mkenemy // 敵を作る
-		if mkcdt<=lpct : gosub *mkcloud // 雲(背景)を作る
-		if lpct\124==0 && lv>=4 : gosub *mkebomb // Lv4以降2秒ごとに敵が弾を発射
-		if boss>0 && lpct\86==0 : bbombx=scrx
-		if lpct\620==0 && lv<8 : lv++ // 10秒ごとにレベルアップ
-		if lpct\1240==0 && lv>=3 && enmnm<4 : enmnm++ // 同時に出現する敵を増やす
-		if lpct\1240==620 && lv>4 && enmpw<3 : enmpw++ // 敵の強さを上げる(Max5)
-		if lpct\1240==0 && lv>=8 && boss<=0 && rest<=0 && lpct-bktime>512 : boss=-100 : rest=248
+		if mkcdt<=lpct : mkcdt=lpct+rnd(240)+120 : gosub *mkcloud // 雲(背景)を作る
+		if lpct\120==0 && lv>=4 : gosub *mkebomb // Lv4以降2秒ごとに敵が弾を発射
+		if boss>0 && lpct\90==0 : bbombx=scrx
+		if lpct\600==0 && lv<8 : lv++ // 10秒ごとにレベルアップ
+		if lpct\1200==0 && lv>=3 && enmnm<4 : enmnm++ // 同時に出現する敵を増やす
+		if lpct\1200==600 && lv>4 && enmpw<3 : enmpw++ // 敵の強さを上げる(Max3)
+		if lpct\1200==0 && lv>=8 && boss<=0 && rest<=0 && lpct-bktime>512 : boss=-100 : rest=240
 		if rest>-10 : rest--
 		if boss==-100 && rest<=0 : gosub *mkboss
 	loop
 	if gvup==1 : gvup=0 : goto *top
 
 	//体力が0以下の時GAMEOVER画面へ
-	mmstop
-	clrobj
+	mmstop : mmplay_opt 6 : clrobj
 	if vibrate==0 : devcontrol "vibrate",500
-	mmplay_opt 6
+	muteki=0
 	repeat
 		redraw 0
-		gosub *stopsc
-		color 0,0,0 : pos 260,280
-		font "",128,1
-		mes "GAMEOVER"
+		gosub *draw_game
+		color 0,0,0 : pos 260,280 : font "",128,1 : mes "GAMEOVER"
 		redraw 1
-		if cnt>246 : break
+		if cnt>240 : break
 		await 1000/60
 	loop
 
+	// 結果画面
 	pts=time+kill(0)*4+kill(1)*8+kill(2)*4+bkpt
 	year(10)=gettime(0) : month(10)=gettime(1) : day(10)=gettime(3) : hour(10)=gettime(4) : minute(10)=gettime(5)
 	gosub *sort // ソートしに行く
@@ -476,56 +305,10 @@
 	if pts<1024 : mmplay_opt 8
 
 	repeat
-		redraw 0
-		color 200,208,208 : boxf
-		color 0,0,0 : font "",96,1
-		pos 420,8 : mes "RESULT"
-		font "",32
-		pos 360,150
-		mes "    得点"
-		temp=1 : su=0
-		if standing==10 : su=1
-		repeat 10+su
-			if standing==cnt {
-				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
-				if temp<10 {
-					mes ""+temp+".  >> "+pts_result(cnt)+"点"
-				} else {
-					if temp==11 : mes "\n圏外 >> "+pts_result(cnt)+"点" : else : mes ""+temp+".>> "+pts_result(cnt)+"点"
-				}
-			} else {
-				color 0,0,0
-				if temp<10 {
-					mes ""+temp+".  "+pts_result(cnt)+"点"
-				} else {
-					mes ""+temp+"."+pts_result(cnt)+"点"
-				}
-			}
-			temp++
-		loop
-
-		color 0,0,0 : pos 600,150 : mes "日付  /  時刻"
-		temp=1
-		repeat 10+su
-			if standing==cnt {
-				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
-				if temp==11 : mes
-				if temp==1 {
-					mes tempstr(cnt)+" << 記録更新!!"
-				} else {
-					mes tempstr(cnt)+" <<"
-				}
-			} else {
-				color 0,0,0
-				mes tempstr(cnt)
-			}
-			temp++
-		loop
+		gosub *draw_result
 		if cnt\4==0 {
 			if bckclr>96 : bckclr=32 : else : bckclr=150
 		}
-		redraw 1
-
 		stick key
 		if key&(16|32) : break
 		if key&256 {
@@ -533,213 +316,203 @@
 		}
 		await 1000/60
 	loop
-	
+
 	clrobj
 	repeat
-		redraw 0
-		pos 0,0 : color 200,208,208 : boxf
-		color 0,0,0 : font "",96,1
-		pos 420-cnt*64,8 : mes "RESULT"
-		font "",32
-		pos 360-cnt*64,150
-		mes "    得点"
-		temp=1 : su=0
-		if standing==10 : su=1
-		repeat 10+su
-			if standing==cnt {
-				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
-				if temp<10 {
-					mes ""+temp+".  >> "+pts_result(cnt)+"点"
-				} else {
-					if temp==11 : mes "\n圏外 >> "+pts_result(cnt)+"点" : else : mes ""+temp+".>> "+pts_result(cnt)+"点"
-				}
-			} else {
-				color 0,0,0
-				if temp<10 : mes ""+temp+".  "+pts_result(cnt)+"点" : else : mes ""+temp+"."+pts_result(cnt)+"点"
-			}
-			temp++
-		loop
-
-		color 0,0,0 : pos 600-cnt*64,150 : mes "日付  /  時刻"
-		temp=1
-		repeat 10+su
-			if standing==cnt {
-				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
-				if temp==11 : mes
-				if temp==1 {
-					mes tempstr(cnt)+" << 記録更新!!"
-				} else {
-					mes tempstr(cnt)+" <<"
-				}
-			} else {
-				color 0,0,0
-				mes tempstr(cnt)
-			}
-			temp++
-		loop
-
-		redraw 1
+		scranime=cnt
+		gosub *draw_result
 		if cnt*64>scrx : break
 		await 1000/60
 	loop
+	scranime=0
 	goto *top
 
-*stopsc // 状態描画
-	if flower<=1 : color 200,208,208
-	if flower>1 | star>0 : color 164,164,164
-	// if flower>1 : color bckclr,bckclr,bckclr
+*draw_title
+	color 200,208,208 : boxf
+	pos scrx*4/5+scranime*64,scry/8 : celput 42,,6,6
+	pos scrx/32+scranime*64,scry/16 : celput 43,,6,6
+	pos scrx/16+scranime*64,scry*3/4 : celput 42,,6,6
+	pos scrx*3/4+scranime*64,scry*2/3 : celput 43,,6,6
+	pos scrx/8+scranime*64,scry*3/8 : celput 42,,4,4
+	pos scrx*3/4+scranime*64,scry*3/8 : celput 43,,4,4
+	pos (scrx-128)/2+scranime*64,(scry-64)/2 : celput 34,,4,4
+
+	pos 290+scranime*64,60 : color 0,0,0 : font "",99,1 : mes "シューティング"
+	pos scrx-128+scranime*64,scry-128 : gcopy 21,128*toopt,0,128,128
+	gmode 3,,,200 : pos (scrx-768)/2+scranime*64,400 : celput 2,,768,256
+	gmode 2 : pos (scrx-768)/2+12+scranime*64,404 : font "",24
+	if pts_result(0)<=0 : mes "最高記録: なし" : else : mes "最高記録: "+pts_result(0)+" 点"
+	mes "\n飛んでくる敵を撃ち落としてください。"
+	mes "タップで上下に移動し、Shoot!ボタンで弾を撃ちます。"
+	mes "アイテムを取ると、少し良いことが起こります。"
+	mes "レベルは10秒ごとに8まで上がります。"
+	mes "得点は耐久時間、撃破数、アイテムの取得数で算出します。"
+	return
+
+*draw_game
+	// 背景色の描画
+	if flower>1 | star>0 : color 164,164,164 : else : color 200,208,208
 	boxf
 
+	// 雲を表示
 	repeat length(cloudx)
 		if cloudx(cnt)>=-300 && cloudx(cnt)<=scrx {
 			pos cloudx(cnt),cloudy(cnt)
-			if cdspc(cnt)==0 : celput 42,,2,2
-			if cdspc(cnt)==1 : celput 42,,3,3
-			if cdspc(cnt)==2 : celput 43,,2,2
-			if cdspc(cnt)==3 : celput 43,,3,3
+			if cdspc(cnt)==0 : celput 42,,4,4
+			if cdspc(cnt)==1 : celput 42,,6,6
+			if cdspc(cnt)==2 : celput 43,,4,4
+			if cdspc(cnt)==3 : celput 43,,6,6
 		}
 	loop
 
-	color 255,255,255 : pos 520,300 : font "",100,1
-	mes ""+pts+" 点"
-	pos 300,640 : font "",64
-	mes "タップ位置で上下に移動"
+	// 各種情報を表示
+	color 255,255,255 : pos 520,300 : font "",100,1 : mes ""+pts+" 点"
 	gmode 2
 
+	// 画面内の敵・アイテムを表示
 	repeat length(enmx)
-		if enmx(cnt)>=-100 && enmx(cnt)<=scrx {
+		if enmx(cnt)>=-96 && enmx(cnt)<=scrx {
 			pos enmx(cnt),enmy(cnt)
-			if species(cnt)==0 : celput 4
-			if species(cnt)==1 : celput 26
-			if species(cnt)==2 : celput 24
-			if species(cnt)==3 : celput 25
-			if species(cnt)==4 : celput 38,starcol
-			if act(cnt)==1 {
-				act(cnt)=0
-				color 0,0,0
-				boxf enmx(cnt),enmy(cnt),enmx(cnt)+100,enmy(cnt)+100
+			if species(cnt)==0 : celput 4,,6,6
+			if species(cnt)==1 : celput 26,,6,6
+			if species(cnt)==2 : celput 24,,6,6
+			if species(cnt)==3 : celput 25,,6,6
+			if species(cnt)==4 : celput 38,starcol,6,6
+			if act(cnt)==1 : act(cnt)=0 : color 0,0,0 : boxf enmx(cnt),enmy(cnt),enmx(cnt)+96,enmy(cnt)+96
+			if species(cnt)==0 || species(cnt)==1 {
+				color 150,150,150 : boxf enmx(cnt)+8,enmy(cnt)+80,enmx(cnt)+90,enmy(cnt)+92
+				color 64,64,64 : boxf enmx(cnt)+13,enmy(cnt)+82,enmx(cnt)+72*(enmpw*(1+species(cnt))-enmdmg(cnt))/(enmpw*(1+species(cnt)))+13,enmy(cnt)+89
 			}
 		}
 	loop
 
+	// ボスを表示
 	if boss>0 {
 		pos bposx,bposy
 		if bossspc==0 : celput 28,,16,16
 		if bossspc==1 : celput 29,,6,6
 		if bossspc==2 : celput 30
 		if bossspc==3 : celput 31,,2,2
-		if bossspc==4 : celput 32,,0.7,0.7
-		if bossspc==5 : celput 33,,0.7,0.7
+		if bossspc==4 : celput 32,,2,2
+		if bossspc==5 : celput 33,,2,2
+		bpbarpy=bposy+bsy-64
+		if bpbarpy>scry-128-64 : bpbarpy=scry-128-64
+		color 150,150,150 : boxf bposx+32,bpbarpy-32,bposx+bsx-32,bpbarpy
+		if redboss>0 : color 196,196,196 : else : color 64,64,64
+		boxf bposx+36,bpbarpy-28,(bsx-72)*boss/bpw+bposx+36,bpbarpy-4
 	}
 
-	pos 0,plcy
-	if star<=0 : celput 34
-	if star>=1 : celput 34,starcol
-	
-	if cnt\2==0 {
+	// プレイヤの表示
+	if muteki!=1 || lpct\4==1 {
+		pos 0,plcy
+		if star<=0 : celput 34,,4,4
+		if star>=120 : celput 34,starcol,4,4
+		if star>0 && star<120 {
+			if lpct\10<5 : celput 34,3,4,4 : else : celput 34,,4,4
+		}
+	}
+	if lpct\2==0 {
 		if starcol>=2 || starcol<=0 : scc=-scc
 		starcol+=scc
 	}
+	if flower>1 {
+		color 150,150,150 : boxf 8,plcy+64,128-8,plcy+76
+		color 64,64,64 : boxf 13,plcy+66,(128-26)*flower/1800+13,plcy+74
+	}
+	if star>1 {
+		color 150,150,150 : boxf 8,plcy+76,128-8,plcy+88
+		color 64,64,64 : boxf 13,plcy+78,(128-26)*star/480+13,plcy+86
+	}
 
+	// 弾丸の表示
 	if flower>1 && (lpct&16)=0 : color 255,255,255 : else : color 0,0,0
 	repeat length(bombx)
-		if bombx(cnt)>10 && bombx(cnt)<=scrx {
-			circle bombx(cnt),bomby(cnt),bombx(cnt)+32,bomby(cnt)+32
-		}
+		if bombx(cnt)>10 && bombx(cnt)<=scrx : circle bombx(cnt),bomby(cnt),bombx(cnt)+32,bomby(cnt)+32
 	loop
 
+	// 敵の弾の表示	
 	repeat length(ebombx)
-		color 0,0,0
-		if ebombx(cnt)>-20 && ebombx(cnt)<=scrx {
-			pos ebombx(cnt),ebomby(cnt)
-			celput 6,,2,2
-		}
-		if bbombx>-50 && bbombx<=scrx {
-			pos bbombx,347
-			celput 6,,4,4
-		}
-		if bbomby>0 {
-			pos scrx/2,bbomby
-			celput 6,,4,4
-		}
+		if ebombx(cnt)>-48 && ebombx(cnt)<=scrx : pos ebombx(cnt),ebomby(cnt) : celput 6,,2,2
 	loop
+	if bbombx<=scrx : pos bbombx,(scry-32)/2 : celput 6,,4,4
+	if bbomby>0 : pos scrx/2,bbomby : celput 6,,4,4
 
-	pos 0,0 : color 0,0,0 : font "",64
-	mes "Lv." + lv
+	// LIFE表示
+	if life>0 : pos (scrx-128*6/5)/2,0 : celput 12,life-1,1.2,1.2
+
+	// Level表示
+	pos 0,0 : color 0,0,0 : font "",64 : mes "Lv." + lv
+	return
+
+*draw_result
+	redraw 0
+		pos 0,0 : color 200,208,208 : boxf
+		color 0,0,0 : font "",96,1 : pos 420-scranime*64,8 : mes "RESULT"
+		font "",32 : pos 360-scranime*64,150 : mes "    得点"
+		temp=1 : su=0
+		if standing==10 : su=1
+		repeat 10+su
+			if standing==cnt {
+				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
+				if temp<10 : mes ""+temp+".  >> "+pts_result(cnt)+"点"
+				if temp==10 : mes ""+temp+".>> "+pts_result(cnt)+"点"
+				if temp==11 : mes "\n圏外 >> "+pts_result(cnt)+"点"
+			} else {
+				color 0,0,0
+				if temp<10 : mes ""+temp+".  "+pts_result(cnt)+"点" : else : mes ""+temp+"."+pts_result(cnt)+"点"
+			}
+			temp++
+		loop
+		color 0,0,0 : pos 600-scranime*64,150 : mes "日付  /  時刻"
+		temp=1
+		repeat 10+su
+			if standing==cnt {
+				if temp==11 : color 64,64,64 : else : color bckclr,bckclr,bckclr
+				if temp==11 : mes
+				if temp==1 : mes tempstr(cnt)+" << 記録更新!!" : else : mes tempstr(cnt)+" <<"
+			} else {
+				color 0,0,0 : mes tempstr(cnt)
+			}
+			temp++
+		loop
+	redraw 1
 	return
 
 *mvbbomb
 	if bbombx<=scrx && bbombx>scrx/2 : bbombx-=12
 	if bbombx<=scrx/2 : bbombx=scrx+20 : bbomby=(scry-16)/2 : bbmpos=plcy+64/2-16/2 : bbud=bbmpos-bbomby
-	if bbomby>0 {
-		if bbud<0 {
-			bbomby-=16
-			if bbomby<=bbmpos {
-				ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-128 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-256 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				if bossspc==2 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-384 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+128 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+256 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				if bossspc==2 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+384 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				bbmpos=-1
-				bbombx=scrx+20 : bbomby=-20
-				ebnum++
-			}
-		} else {
-			bbomby+=16
-			if bbomby>=bbmpos {
-				ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-128 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-256 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				if bossspc==2 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-384 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0				
-
-				ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+128 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+256 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				if bossspc==2 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+384 : ebnum++
-				if ebnum>=length(ebombx) : ebnum=0
-
-				bbmpos=-1
-				bbombx=scrx+20 : bbomby=-20
-				ebnum++
-			}
-		}
+	if bbomby<=0 : return
+	if bbud<0 {
+		bbomby-=16
+		if bbomby>bbmpos : return
+	} else {
+		bbomby+=16
+		if bbomby<bbmpos : return
 	}
+	ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos : ebnum++
+	if ebnum>=length(ebombx) : ebnum=0
+	ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-128 : ebnum++
+	if ebnum>=length(ebombx) : ebnum=0
+	if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-256 : ebnum++
+	if ebnum>=length(ebombx) : ebnum=0
+	if bossspc==2 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos-384 : ebnum++
+	if ebnum>=length(ebombx) : ebnum=0
+	ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+128 : ebnum++
+	if ebnum>=length(ebombx) : ebnum=0
+	if bossspc!=4 && bossspc!=5 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+256 : ebnum++
+	if ebnum>=length(ebombx) : ebnum=0
+	if bossspc==2 : ebombx(ebnum)=scrx/2 : ebomby(ebnum)=bbmpos+384 : ebnum++
+	if ebnum>=length(ebombx) : ebnum=0
+	bbmpos=-1
+	bbombx=scrx+20 : bbomby=-20
 	return
 
 *mkenemy // 敵を作る
-	enmy(kai)=rnd(scry)-50
+	enmy(kai)=rnd(scry)-96/2
 	enmx(kai)=scrx
 	if lv==1 : species(kai)=0
 	if lv==2 : species(kai)=1
-	if lv>=3 && boss<=0 {
-		if rnd(2)==0 : species(kai)=0 /* 椎茸属性 */ : else : species(kai)=1 /* 甲羅属性 */
-	}
+	if lv>=3 : species(kai)=rnd(2)
 	if itmt<=lpct {
 		species(kai)=2 // 茸属性
 		itemsel=rnd(4)
@@ -750,14 +523,14 @@
 	}
 	kai++
 	if kai>=length(enmx) : kai=0
-	mkenmt=lpct+rnd(124/enmnm)
-	if boss>0 && bossspc==2 : mkenmt=lpct+rnd(124)
+	mkenmt=lpct+rnd(120/enmnm)
+	if boss>0 && bossspc==2 : mkenmt=lpct+rnd(120)
 	return
 
 *mvenemy // 敵・アイテム・雲を動かす
 	repeat length(enmx)
-		if enmx(cnt)>=-100 && enmx(cnt)<=scrx : enmx(cnt)-=6
-		if enmx(cnt)<=-100 : enmdmg(cnt)=0 : enmx(cnt)=scrx+20
+		if enmx(cnt)>=-96 && enmx(cnt)<=scrx : enmx(cnt)-=6
+		if enmx(cnt)<=-96 : enmdmg(cnt)=0 : enmx(cnt)=scrx+20
 		if cnt<length(cloudx) {
 			if cloudx(cnt)>=-300 && cloudx(cnt)<=scrx {
 				if cdspd(cnt)==0 : cloudx(cnt)-=2 : else : cloudx(cnt)-=3
@@ -768,24 +541,23 @@
 	return
 
 *mkcloud // 雲を作る
-	cloudy(cdcnt)=rnd(scry-32) : cloudx(cdcnt)=scrx
+	cloudy(cdcnt)=rnd(scry-84) : cloudx(cdcnt)=scrx
 	cdspc(cdcnt)=rnd(4)
 	cdspd(cdcnt)=rnd(2)
 	cdcnt++
 	if cdcnt>=length(cloudx) : cdcnt=0
-	mkcdt=lpct+rnd(248)+128
 	return
 
 *mkboss // ボスを作る
 	mmstop 2
 	if flower<=1 && star<=0 : mmplay_opt 16
 	bossspc=rnd(6)
-	if bossspc==0 : bsx=512 : bsy=512 : boss=128 // 512x512 x16 HP64 Bowser_FC
-	if bossspc==1 : bsx=384 : bsy=576 : boss=128 // 384x576 x6 HP64 Bowser_SFC
-	if bossspc==2 : bsx=512 : bsy=512 : boss=256 // 512x512 x1 HP128 Bowser_new
-	if bossspc==3 : bsx=520 : bsy=610 : boss=64 // 520x610 x2 HP32 Jr
-	if bossspc==4 : bsx=665 : bsy=665 : boss=64 // 665x665 x0.7 HP32 kingbomb
-	if bossspc==5 : bsx=665 : bsy=665 : boss=32 // 665x665 x0.7 HP16 megabros
+	if bossspc==0 : bsx=512 : bsy=512 : boss=128 // 512x512 x16 HP64 bowser1
+	if bossspc==1 : bsx=384 : bsy=576 : boss=128 // 384x576 x6 HP64 bowser2
+	if bossspc==2 : bsx=512 : bsy=512 : boss=256 // 512x512 x1 HP128 bowser3
+	if bossspc==3 : bsx=448 : bsy=576 : boss=64 // 448x576 x2 HP32 jr
+	if bossspc==4 : bsx=512 : bsy=512 : boss=64 // 512x512 x2 HP32 kingbomb
+	if bossspc==5 : bsx=448 : bsy=512 : boss=32 // 448x512 x2 HP16 sledgebro
 	bposx=scrx-bsx : bposy=(scry-bsy)/2 : bpw=boss
 	if vibrate==0 : devcontrol "vibrate",500
 	return
@@ -798,166 +570,93 @@
 	bombx(su)=120
 	bomby(su)=plcy+16
 	su++
-	if su>=31 : su=0
+	if su>31 : su=0
 	return
 
-*mvbomb // 弾丸を動かす+弾丸が画面外ならx=-128まで飛ばす
+*mvbomb // 弾丸を動かす+弾丸が画面外ならx=-256まで飛ばす
 	repeat length(bombx)
 		if bombx(cnt)>10 && bombx(cnt)<=scrx {
 			if flower==0 : bombx(cnt)+=16
 			if flower>=1 : bombx(cnt)+=32
 		} else {
-			bombx(cnt)=-128
+			bombx(cnt)=-256
 		}
 	loop
 	return
 
-*pechk // プレイヤの敵の当たり判定 (移動前後の軌跡も確認)
-	if enmy(cnt)<plcy+64 && enmy(cnt)+100>plcy {
-		if species(cnt)==2 {
-			life+=2
-			if life>8 : life=8
-			enmx(cnt)=scrx+20
-			kill(2)++
-			mmplay_opt 13
-		}
-		if species(cnt)==3 {
-			if flower<=0 : mmstop 2 : mmstop 16 : mmplay_opt 13 : mmplay_opt 14
-			flower+=1800
-			enmx(cnt)=scrx+20
-			kill(2)++
-		}
-		if species(cnt)==4 {
-			mmplay_opt 13
-			if star<=0 : mmstop 2 : mmstop 16 : mmplay_opt 15
-			star+=496
-			enmx(cnt)=scrx+20
-			kill(2)++
-		}
-		if species(cnt)==0 || species(cnt)==1 {
-			if star<=0 {
-				muteki=1
-				life-=2
-				mstartpoint=lpct
-				flash=1
-				if life>0 : mmplay_opt 10
-				if vibrate==0 : devcontrol "vibrate",100
-				await 200
-			} else {
-				mmplay_opt 7
-				enmdmg(cnt)=0
-				enmx(cnt)=scrx+20
-				kill(species(cnt))++
-			}
-		}
-	}
-	if species(cnt)==0 || species(cnt)==1 {
-		if enmy(cnt)>plcy && enmy(cnt)+100<last {
-			if star<=0 {
-				life-=2
-				muteki=1
-				mstartpoint=lpct
-				flash=1
-				if life<=0 : plcy=enmy(cnt)-64
-				if life>0 : mmplay_opt 10
-			} else {
-				mmplay_opt 7
-				enmdmg(cnt)=0
-				enmx(cnt)=scrx+20
-				kill(species(cnt))++
-			}
-		}
-	}
-	if species(cnt)==0 || species(cnt)==1 {
-		if enmy(cnt)>last && enmy(cnt)+100<plcy {
-			if star<=0 {
-				life-=2
-				muteki=1
-				mstartpoint=lpct
-				flash=1
-				if life<=0 : plcy=enmy(cnt)+100
-				if life>0 : mmplay_opt 10
-			} else {
-				mmplay_opt 7
-				enmdmg(cnt)=0
-				enmx(cnt)=scrx+20
-				kill(species(cnt))++
-			}
-		}
+*pechk // プレイヤの敵の当たり判定
+	ret=collision(enmx(cnt),enmy(cnt),96,96,species(cnt)<2 && star<=0)
+	if ret=-1000 : return
+	
+	if species(cnt)==2 {
+		life+=2
+		if life>8 : life=8
+		enmx(cnt)=scrx+20
+		kill(2)++
+		mmplay_opt 13
+	} else : if species(cnt)==3 {
+		if flower<=0 : mmstop 2 : mmstop 16 : mmplay_opt 13 : mmplay_opt 14
+		flower+=1800
+		enmx(cnt)=scrx+20
+		kill(2)++
+	} else : if species(cnt)==4 {
+		mmplay_opt 13
+		if star<=0 : mmstop 2 : mmstop 16 : mmplay_opt 15
+		star+=480
+		enmx(cnt)=scrx+20
+		kill(2)++
+	} else : if star<=0 {
+		muteki=1
+		life-=2
+		mstartpoint=lpct
+		if life<=0 : plcy=ret
+		if life>0 : mmplay_opt 10
+		if vibrate==0 : devcontrol "vibrate",100
+		await 200
+	} else {
+		mmplay_opt 7
+		enmdmg(cnt)=0
+		enmx(cnt)=scrx+20
+		kill(species(cnt))++
 	}
 	return
 
-*pbchk // プレイヤの弾の当たり判定 移動前後の軌跡も確認
-	if ebomby(cnt)<plcy+64 && ebomby(cnt)+16>plcy {
-		if star<=0 {
-			muteki=1
-			life--
-			mstartpoint=lpct
-			flash=1
-			if life>0 : mmplay_opt 10
-			if vibrate==0 : devcontrol "vibrate",100
-			await 200
-		} else {
-			mmplay_opt 7
-			ebombx(cnt)=-128
-		}
-	}
-	if ebomby(cnt)>plcy && ebomby(cnt)+32<last {
-		if star<=0 {
-			life--
-			muteki=1
-			mstartpoint=lpct
-			flash=1
-			if life<=0 : plcy=ebomby(cnt)-64
-			if life>0 : mmplay_opt 10
-		} else {
-			mmplay_opt 7
-			ebombx(cnt)=-128
-		}
-	}
-	if ebomby(cnt)>last && ebomby(cnt)+32<plcy {
-		if star<=0 {
-			life--
-			muteki=1
-			mstartpoint=lpct
-			flash=1
-			if life<=0 : plcy=ebomby(cnt)+32
-			if life>0 : mmplay_opt 10
-		} else {
-			mmplay_opt 7
-			ebombx(cnt)=-128
-		}
+*pbchk // プレイヤの弾の当たり判定
+	ret=collision(ebombx(cnt),ebomby(cnt),48,16,star<=0)
+	if ret=-1000 : return
+
+	if star<=0 {
+		muteki=1
+		life--
+		mstartpoint=lpct
+		if life<=0 : plcy=ret
+		if life>0 : mmplay_opt 10
+		if vibrate==0 : devcontrol "vibrate",100
+		await 200
+	} else {
+		mmplay_opt 7
+		ebombx(cnt)=-256
 	}
 	return
 
 *shotck // 弾丸の当たり判定(敵)
-	if enmx(a)<=scrx & enmy(a)+100>bomby(b) && enmy(a)<bomby(b)+32 {
+	if enmx(a)<=scrx & enmy(a)+96>bomby(b) && enmy(a)<bomby(b)+32 {
 		mmplay_opt 7
 		enmdmg(a)++
 		if flower>0 : enmdmg(a)+=8
 		act(a)=1
-		if species(a)==0 && enmdmg(a)>=enmpw {
-			enmdmg(a)=0
-			enmx(a)=scrx+20
-			kill(0)++
-		}
-		if species(a)==1 && enmdmg(a)>=enmpw*2 {
-			enmdmg(a)=0
-			enmx(a)=scrx+20
-			kill(1)++
-		}
-		if flower<=0 : bombx(b)=-128
+		if species(a)==0 && enmdmg(a)>=enmpw : enmdmg(a)=0 : enmx(a)=scrx+20 : kill(0)++
+		if species(a)==1 && enmdmg(a)>=enmpw*2 : enmdmg(a)=0 : enmx(a)=scrx+20 : kill(1)++
+		if flower<=0 : bombx(b)=-256
 	}
 	return
 
 *mkebomb // 敵が弾を作る
 	repeat length(enmx)
-		if species(cnt)==0 || species(cnt)==1 {
-			if enmx(cnt)>=300 && enmx(cnt)<=scrx {
-				ebombx(ebnum)=enmx(cnt)-48
-				ebomby(ebnum)=enmy(cnt)+(100-16)/2
-				ebnum++
-			}
+		if (species(cnt)==0 || species(cnt)==1) && enmx(cnt)>=300 && enmx(cnt)<=scrx {
+			ebombx(ebnum)=enmx(cnt)-48
+			ebomby(ebnum)=enmy(cnt)+(96-16)/2
+			ebnum++
 		}
 		if ebnum>length(ebombx)-1 : ebnum=0
 	loop
@@ -972,19 +671,14 @@
 	
 *pause // ポーズ画面
 	mmplay_opt 9
-	objimage 9,,,,128
 	objsize 512,128
-	pos (scrx-512)/2,320
-	button gosub "",*ctn
-	objimage 11,,,,128
-	pos (scrx-512)/2,320+128
-	button gosub "",*giveup
+	objimage 9,,,,128 : pos (scrx-512)/2,320 : button gosub "",*ctn
+	objimage 11,,,,128 : pos (scrx-512)/2,320+128 : button gosub "",*giveup
 	repeat
 		redraw 0
-		gosub *stopsc
-		color 0,0,0 : font "",128,1
-		pos 420,140 : mes "PAUSE"
-		pos (scrx-128*6/5)/2,0 : celput 12,life-1,1.2,1.2
+		gosub *draw_game
+		pos 280,640 : font "",64 : mes "タップ位置で上下に移動"
+		pos 420,140 : color 0,0,0 : font "",128,1 : mes "PAUSE"
 		redraw 1
 		stick key
 		if key&16 : resume=1
@@ -997,14 +691,10 @@
 	mmplay_opt 9
 	clrobj
 	return
-
 *ctn
-	resume=1
-	return
-
+	resume=1 : return
 *giveup
-	gvup=1
-	return
+	gvup=1 : return
 
 *AddLeadingZero
 	repeat 10
@@ -1022,24 +712,12 @@
 	repeat 10
 		repeat 10
 			if pts_result(j)<pts_result(j+1){
-				temp=pts_result(j)
-				pts_result(j)=pts_result(j+1)
-				pts_result(j+1)=temp
-				temp=year(j)
-				year(j)=year(j+1)
-				year(j+1)=temp
-				temp=month(j)
-				month(j)=month(j+1)
-				month(j+1)=temp
-				temp=day(j)
-				day(j)=day(j+1)
-				day(j+1)=temp
-				temp=hour(j)
-				hour(j)=hour(j+1)
-				hour(j+1)=temp
-				temp=minute(j)
-				minute(j)=minute(j+1)
-				minute(j+1)=temp
+				temp=pts_result(j) : pts_result(j)=pts_result(j+1) : pts_result(j+1)=temp
+				temp=year(j) : year(j)=year(j+1) : year(j+1)=temp
+				temp=month(j) : month(j)=month(j+1) : month(j+1)=temp
+				temp=day(j) : day(j)=day(j+1) : day(j+1)=temp
+				temp=hour(j) : hour(j)=hour(j+1) : hour(j+1)=temp
+				temp=minute(j) : minute(j)=minute(j+1) : minute(j+1)=temp
 				if j+1==standing : standing--
 			}
 			j++
@@ -1054,19 +732,14 @@
 	mmplay_opt 12
 *option
 	cls
-	objimage 47,,,,128 : objsize 512,128 : pos (scrx-512)/2,180
-	button gosub "",*btn_1
-	objimage 44,,,,128 : pos (scrx-512)/2,180+128
-	button gosub "",*btn_2
-	objimage 49,,,,128 : pos (scrx-512)/2,180+128+128
-	button gosub "",*btn_3
-	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128
-	button gosub "",*btn_back
+	objimage 47,,,,128 : objsize 512,128 : pos (scrx-512)/2,180 : button gosub "",*btn_1
+	objimage 44,,,,128 : pos (scrx-512)/2,180+128 : button gosub "",*btn_2
+	objimage 49,,,,128 : pos (scrx-512)/2,180+128+128 : button gosub "",*btn_3
+	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128 : button gosub "",*btn_back
 	repeat
 		redraw 0
 		pos 0,0 : color 0,0,0 : boxf
-		pos 140,32 : font "",64 : color 0,255,0
-		mes "設定する項目を選択してください"
+		pos 140,32 : font "",64 : color 0,255,0 : mes "設定する項目を選択してください"
 		redraw 1
 		if opt1 | opt2 | opt3 | is_back : break
 		await 1000/60
@@ -1078,19 +751,14 @@
 
 *vibset
 	cls
-	objimage 50,,,,128 : objsize 512,128 : pos (scrx-512)/2,180
-	button gosub "",*enableset
-	objimage 51,,,,128 : pos (scrx-512)/2,180+128
-	button gosub "",*disableset
-	objimage 52,,,,128 : pos (scrx-512)/2,180+128+128
-	button gosub "",*hellset
-	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128
-	button gosub "",*btn_back
+	objimage 50,,,,128 : objsize 512,128 : pos (scrx-512)/2,180 : button gosub "",*enableset
+	objimage 51,,,,128 : pos (scrx-512)/2,180+128 : button gosub "",*disableset
+	objimage 52,,,,128 : pos (scrx-512)/2,180+128+128 : button gosub "",*hellset
+	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128 : button gosub "",*btn_back
 	repeat
 		redraw 0
 		pos 0,0 : color 0,0,0 : boxf
-		pos 280,32 : font "",64 : color 0,255,0
-		mes "項目を選択してください"
+		pos 280,32 : font "",64 : color 0,255,0 : mes "項目を選択してください"
 		pos 380,600
 		if vibrate==0 {
 			mes "現在の設定: 有効"
@@ -1103,37 +771,26 @@
 		if is_back : break
 		await 1000/60
 	loop
-	is_back=0
-	goto *option
-
+	is_back=0 : goto *option
 *enableset
-	vibrate=0
-	gosub *save
+	vibrate=0 : gosub *save
 	return
-
 *disableset
-	vibrate=1
-	gosub *save
+	vibrate=1 : gosub *save
 	return
-
 *hellset
-	vibrate=2
-	gosub *save
+	vibrate=2 : gosub *save
 	return
 
 *automanual
 	cls
-	objimage 46,,,,128 : objsize 512,128 : pos (scrx-512)/2,180
-	button gosub "",*manualset
-	objimage 45,,,,128 : pos (scrx-512)/2,180+128
-	button gosub "",*autoset
-	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128
-	button gosub "",*btn_back
+	objimage 46,,,,128 : objsize 512,128 : pos (scrx-512)/2,180 : button gosub "",*manualset
+	objimage 45,,,,128 : pos (scrx-512)/2,180+128 : button gosub "",*autoset
+	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128 : button gosub "",*btn_back
 	repeat
 		redraw 0
 		pos 0,0 : color 0,0,0 : boxf
-		pos 280,32 : font "",64 : color 0,255,0
-		mes "項目を選択してください"
+		pos 280,32 : font "",64 : color 0,255,0 : mes "項目を選択してください"
 		pos 300,570
 		if keyboardmode==0 : mes "現在の設定: マニュアル連射" : else : mes "現在の設定: オート連射"
 		redraw 1
@@ -1142,38 +799,30 @@
 	loop
 	is_back=0
 	goto *option
-
 *manualset
-	keyboardmode=0
-	gosub *save
+	keyboardmode=0 : gosub *save
 	return
-
 *autoset
-	keyboardmode=1
-	gosub *save
+	keyboardmode=1 : gosub *save
 	return
 
 *delopt
 	cls
 	b=0
-	objimage 48,,,128 : objsize 128,128 : pos 64,64
-	button gosub "",*btn_del
-	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128
-	button gosub "",*btn_back
+	objimage 48,,,128 : objsize 128,128 : pos 64,64 : button gosub "",*btn_del
+	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128 : button gosub "",*btn_back
 	gosub *AddLeadingZero
 	repeat
 		redraw 0
 		pos 0,0 : color 0,0,0 : boxf
 		color 0,255,0 : font "",64 : pos 64,192 : mes "削除"
 		pos 500,24 : mes "現在の記録"
-
 		font "",32
 		pos 400,150 : mes "    得点" : temp=1
 		repeat 10
 			if temp<10 : mes ""+temp+".  "+pts_result(cnt)+"点" : else : mes ""+temp+"."+pts_result(cnt)+"点"
 			temp++
 		loop
-
 		pos 680,150 : mes "日付  /  時刻"
 		repeat 10
 			mes tempstr(cnt)
@@ -1185,15 +834,12 @@
 	if is_back : is_back=0 : goto *option
 
 	b=0 : cls
-	objimage 48,,,128 : objsize 128,128 : pos (scrx-128)/2,320
-	button gosub "",*btn_del
-	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128
-	button gosub "",*btn_back
+	objimage 48,,,128 : objsize 128,128 : pos (scrx-128)/2,320 : button gosub "",*btn_del
+	objimage 23,,,128 : objsize 128,128 : pos 0,scry-128 : button gosub "",*btn_back
 	repeat
 		redraw 0
 		pos 0,0 : color 0,0,0 : boxf
-		pos 100,64 : font "",64 : color 0,255,0
-		mes "記録は削除すると元に戻せません！！\n続行しますか？"
+		pos 100,64 : font "",64 : color 0,255,0 : mes "記録は削除すると元に戻せません！！\n続行しますか？"
 		redraw 1
 		if b | is_back : break
 		await 16
@@ -1205,43 +851,47 @@
 	gosub *save
 	redraw 0
 		pos 0,0 : color 0,0,0 : boxf
-		pos 120,64 : font "",64
-		color 0,255,0
-		mes "削除しました。"
+		pos 120,64 : font "",64 : color 0,255,0 : mes "削除しました。"
 	redraw 1
 	await 1000
 	goto *option
-
 *btn_del
 	b=1
 	return
-
 *btn_1
 	opt1=1
 	return
-
 *btn_2
 	opt2=1
 	return
-
 *btn_3
 	opt3=1
 	return
-
 *btn_back
 	is_back=1
 	return
 
 *save
-	bsave "save.bin",pts_result // 得点の記録(int[10]; 4byte*10)
-	bsave "save.bin",year,4*10,4*10 // 年の記録(int[10]; 4byte*10)
-	bsave "save.bin",month,4*10,4*10*2 // 月の記録(int[10]; 4byte*10)
-	bsave "save.bin",day,4*10,4*10*3 // 日の記録(int[10]; 4byte*10)
-	bsave "save.bin",hour,4*10,4*10*4 // 時の記録(int[10]; 4byte*10)
-	bsave "save.bin",minute,4*10,4*10*5 // 分の記録(int[10]; 4byte*10)
-	bsave "save.bin",vibrate,4,240 // バイブレーションの設定(int; 4byte)
-	bsave "save.bin",keyboardmode,4,244 // オート・マニュアルの設定(int; 4byte)
+	dimtype savedata,vartype("int"),62
+	memcpy savedata,pts_result,4*10 // 得点の記録(int[10]; 4byte*10)
+	memcpy savedata,year,4*10,4*10 // 年の記録(int[10]; 4byte*10)
+	memcpy savedata,month,4*10,4*10*2 // 月の記録(int[10]; 4byte*10)
+	memcpy savedata,day,4*10,4*10*3 // 日の記録(int[10]; 4byte*10)
+	memcpy savedata,hour,4*10,4*10*4 // 時の記録(int[10]; 4byte*10)
+	memcpy savedata,minute,4*10,4*10*5 // 分の記録(int[10]; 4byte*10)
+	memcpy savedata,vibrate,4,4*10*6 // バイブレーションの設定(int; 4byte)
+	memcpy savedata,keyboardmode,4,4*10*6+4 // オート・マニュアルの設定(int; 4byte)
+	bsave "save.bin",savedata
 	return
+
+// プレイヤとオブジェクトの当たり判定。接触位置を返し、非接触なら -1000 を返す。margin は「●割」で指定。
+#defcfunc collision int x, int y, int x_len, int y_len, int margin
+	if x+x_len*margin/10<128*(10-margin)/10 && x+x_len*(10-margin)/10>128*margin/10 {
+		if y+y_len*margin/10<=plcy+64*(10-margin)/10 && y+y_len*(10-margin)/10>=plcy+64*margin/10 : return plcy
+		if y+y_len*margin/10>plcy+64*(10-margin)/10 && y+y_len*(10-margin)/10<last+64*margin/10 : return y+y_len*(10-margin)/10-64*margin/10
+		if y+y_len*margin/10>last+64*(10-margin)/10 && y+y_len*(10-margin)/10<plcy+64*margin/10 : return y+y_len*margin/10-64*(10-margin)/10
+	}
+	return -1000
 
 // 音声ファイルが存在する場合のみ mmload する
 #deffunc mmload_opt str mmload_opt_file, int mmload_opt_id, int mmload_opt_mode
