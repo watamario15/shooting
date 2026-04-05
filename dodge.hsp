@@ -1,20 +1,14 @@
 /* ～変数紹介～
- * intro : スタート時の3秒カウント
- * atrx : x座標当たり判定(No:0 Yes:1)
- * atry : y座標当たり判定(No:0 Yes:1)
+ * atr : 当たり判定(No:0 Yes:1)
  * kai : 敵作成時の番号(32匹を過ぎると0に戻す)
- * chk : 敵移動時の番号
- * enmpos : 敵のx座標
+ * enmx : 敵のx座標
  * enmy : 敵のy座標
- * psb : PAUSE復帰時のEnterキー認識
- * psc : PAUSEに移行する時のSpaceキー認識
- * pst : タイトルに戻る時のEscキー認識
+ * pause_key : PAUSE復帰時のキー認識
+ * key : その他のキー認識
  * time : プレイ時間
  * lv : 現在のゲームレベル
  * lpct : メインループ回数(プレイ時間出力用)
  * besttime : 最高記録(セーブデータにも使用)
- * comment : GAMEOVER画面のボタン内の文字
- * 最終変更 : 2018年01月24日
  */
 #packopt name "dodge"
 #packopt icon "app.ico"
@@ -32,60 +26,63 @@
 	mmload_opt assets_dir+"go.wav",7,0
 	celload assets_dir+"player.bmp",1
 	celload assets_dir+"enemy.bmp",2
-	celload assets_dir+"wallpaper.jpg",3
+	exist assets_dir+"bg.jpg"
+	if strsize!-1 : use_bg=1 : celload assets_dir+"bg.jpg",3 : else : use_bg=0
 	exist "save.bin"
-	if strsize!-1 : bload "save.bin",besttime,64 : else : besttime=-1
+	if strsize!-1 : bload "save.bin",besttime : else : besttime=-1
 
-*ttscr;タイトル
+*top
 	mmstop
 	mmplay_opt 1
 	mouse
 
 	//変数の設定
-	dim enmpos,32 : dim enmy,32
+	dim enmx,32 : dim enmy,32
 	repeat 32
-		enmy(cnt)=-101
+		enmy(cnt)=-100
 	loop
-	lpct=0 : time=0 : lv=1 : chk=0 : kai=0
+	lpct=0 : time=0 : lv=1 : kai=0
 
 	//画面を出力
 	cls 4
 	title "敵避けゲーム"
+	if use_bg : celput 3
 
-	pos 80,60
+	pos 85,40
 	color 255,255,0
 	font msgothic,80
 	print "敵避けゲーム"
 
-	pos 75,270
+	font msgothic,25
+	pos 160,160
 	color 0,255,0
+	mes "-- クリックでスタート --"
+
+	pos 75,230
 	font msgothic,18
 	if besttime=-1 : mes "最高記録: なし" : else : mes "最高記録: "+besttime+" 秒"
 	mes "\nマウスを動かしてランダムに出てくる敵を避け続けて下さい。"
 	mes "10回ごとにレベルが上がり、敵の数が増えます。"
 	mes "スペースキーを押すと一時停止します。"
-	mes "記録更新時は結果画面で記録を保存できます。"
 	mes "save.binファイルを消すと記録を消去できます。"
 
-	objmode 2
-	font msgothic,32
-	pos 210,180
-	objsize 200,50
-	button "START",*prepare
-
 	repeat
-		stick title_key
-		if title_key&32 : break
+		stick key
+		if key&(16|32) : break
+		if key&256 {
+			if mousex>=0 & mousex<640 & mousey>=0 & mousey<480 : break
+		}
 		await 16
 	loop
-*prepare //カウントダウン画面
+
+	//カウントダウン
 	mmstop
 	cls
 	font msgothic,64,1
 	repeat 3
 		mmplay_opt 0
-		color 0,0,0
-		boxf
+		pos 0,0
+		if use_bg : celput 3 : else : color 0,0,0 : boxf //背景の描画
 		pos 300,200
 		color 255,255,255
 		print 3-cnt
@@ -94,7 +91,8 @@
 	mouse -1 //マウスを非表示
 	mmplay_opt 7
 	mmplay_opt 4
-*main//メインループ
+
+	//メインループ
 	repeat
 		title "敵避けゲーム "+time+"秒 Lv."+lv
 
@@ -102,76 +100,100 @@
 		gmode 0 //背景を完全に表示するためにすべてを描画するモードに変更
 
 		pos 0,0
-		celput 3 //背景の描画
+		if use_bg : celput 3 : else : color 0,0,0 : boxf //背景の描画
 
 		color 0,255,255
 		gmode 4,,,256 //水色を描画しない(透過処理)
 
-		pos mousex-25,mousey-25
-		celput 1 //プレイヤーキャラクターの表示
+		pos mousex-16,mousey-26
+		celput 1,,2,2 //プレイヤーキャラクターの表示
 
-		repeat //全ての敵を表示
-			pos enmpos(chk),enmy(chk)
-			celput 2
-			chk=chk+1
-			if chk=31 : break
+		repeat 32 //全ての敵を表示
+			if enmy(cnt)<-64 : continue
+			pos enmx(cnt),enmy(cnt)
+			celput 2,,4,4
 		loop
 
 		pos 0,0
-		color 255,128,0
+		color 255,255,0
 		font msgothic,32
 		mes ""+time+"秒 Lv."+lv
 		redraw 1
 
 		//ポーズ移行
-		stick psc
-		if psc&16 : gosub *pause
+		stick key
+		if key&16 : gosub *pause
 		if pause_key&128 : break
 
 		//当たり判定
 		repeat 32
-			if enmpos(cnt)<mousex+25 & enmpos(cnt)+100>mousex-25 : gosub*xchk
-			if enmy(cnt)<mousey+25 & enmy(cnt)+100>mousey-25 : gosub*ychk
-			if atrx=1 | atry=1 : break
+			if enmx(cnt)+64/10<mousex+16-32/10 & enmx(cnt)+64*9/10>mousex-16+32/10 & enmy(cnt)+64/10<mousey+26-52/10 & enmy(cnt)+64*9/10>mousey-26+52/10 : atr=1 : break
 		loop
-		if atrx=1 | atry=1 : break
-		atrx=0 : atry=0 //確認用変数を初期化
+		if atr : atr=0 : break
 
 		await 16
 		lpct=lpct+1
-		if lpct\62=0 : time=time+1 : gosub *mkenemy
-		if lpct\620=0 : lv=lv+1
-		gosub *mvenemy
+		if lpct\60=0 : time=time+1 : gosub *mkenemy
+		if lpct\600=0 & lv<5 : lv=lv+1
+		repeat 32
+			if enmy(cnt)>=-96 & enmy(cnt)<480+96 : enmy(cnt)=enmy(cnt)+2
+			if enmy(cnt)>=480+96 : enmy(cnt)=-100
+		loop
 	loop
-	if pause_key&128 : goto *ttscr
-	if atrx=1 | atry=1 : goto *gameover
+	if pause_key&128 : pause_key=0 : goto *top
+
+	mmstop
+	mouse
+	color 255,255,0
+	pos 180,200
+	font msgothic,64,1
+	mes "GAMEOVER"
+	mmplay_opt 3
+
+	cls 4
+	if use_bg : celput 3
+	mmplay_opt 2
+	
+	if besttime<time {
+		besttime=time
+		bsave "save.bin",besttime
+		font msgothic,48
+		color 255,255,0
+		pos 200,370 : print "記録更新！"
+	}
+
+	color 255,255,0
+	font msgothic,100,1
+	pos 160,80
+	mes "RESULT"
+	
+	font msgothic,32
+	pos 175,200
+	mes "時間: "+time+"秒 (Lv."+lv+")"
+	mes "最高記録: "+besttime+"秒"
+
+	color 0,255,0
+	font msgothic,25
+	pos 180,300
+	mes "-- クリックで進む --"
+
+	repeat
+		stick key
+		if key&(16|32) : break
+		if key&256 {
+			if mousex>=0 & mousex<640 & mousey>=0 & mousey<480 : break
+		}
+		await 16
+	loop
+	goto *top
 
 *mkenemy
 	repeat lv
-		enmpos(kai)=rnd(640)-50
-		enmy(kai)=-100
+		enmx(kai)=rnd(640)-64/2
+		enmy(kai)=-64
 		kai=kai+1
-		if kai=31 : kai=0
+		if kai>31 : kai=0
 	loop
-	return
-
-*mvenemy
-	chk=0
-	repeat
-		if enmy(chk)>=-100 & enmy(chk)<=530 : enmy(chk)=enmy(chk)+2
-		if enmy(chk)>=530 : enmy(chk)=-101
-		chk=chk+1
-		if chk=31 : break
-	loop
-	chk=0
-	return
-
-*xchk
-	if enmy(cnt)<mousey+25 & enmy(cnt)+100>mousey-25 : atrx=1 : else : atrx=0
-	return
-
-*ychk
-	if enmpos(cnt)<mousex+25 & enmpos(cnt)+100>mousex-25 : atry=1 : else : atry=0
 	return
 
 *pause
@@ -184,7 +206,7 @@
 	mes "PAUSE"
 
 	font msgothic,20
-	color 255,128,0
+	color 255,255,0
 	pos 140,250
 	mes "Spaceキー:再開　Escキー:タイトルに戻る"
 
@@ -195,48 +217,6 @@
 	loop
 	if pause_key&16 : mouse -1 : mmplay_opt 5
 	return
-
-*gameover
-	mmstop
-	mouse
-
-	color 255,128,0
-	pos 180,200
-	font msgothic,64,1
-	mes "GAMEOVER"
-
-	mmplay_opt 3
-*result
-	cls 4
-	mmplay_opt 2
-	
-	color 255,255,0
-	font msgothic,100,1
-	pos 160,80
-	mes "RESULT"
-	
-	color 0,255,0
-	font msgothic,32
-	pos 175,200
-	mes "時間: "+time+"秒 (Lv."+lv+")"
-	
-	if besttime<time : besttime=time
-	mes "最高記録: "+besttime+"秒"
-	
-	if besttime=time : comment="セーブして" : else : comment=""
-	objsize 340,50
-	font msgothic,25
-	pos 150,300
-	button ""+comment+"タイトルへ戻る",*saving
-	
-	font msgothic,48
-	color 255,255,0
-	if besttime=time : pos 200,370 : print "記録更新!!"
-	stop
-
-*saving
-	if besttime=time : bsave "save.bin",besttime,8
-	goto *ttscr
 
 // 音声ファイルが存在する場合のみ mmload する
 #deffunc mmload_opt str mmload_opt_file, int mmload_opt_id, int mmload_opt_mode
