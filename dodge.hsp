@@ -20,7 +20,7 @@
 	mmload_opt assets_dir+"countdown.wav",0,0
 	mmload_opt assets_dir+"title.mp3",1,1
 	mmload_opt assets_dir+"result.mp3",2,1
-	mmload_opt assets_dir+"miss.wav",3,2
+	mmload_opt assets_dir+"gameover.wav",3,2
 	mmload_opt assets_dir+"bgm.mp3",4,1
 	mmload_opt assets_dir+"pause.wav",5,0
 	mmload_opt assets_dir+"go.wav",7,0
