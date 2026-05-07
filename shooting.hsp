@@ -64,14 +64,14 @@
 	mmload_opt assets_dir+"ending_good.mp3",3,1
 	mmload_opt assets_dir+"ending_bad.mp3",8,1
 	mmload_opt assets_dir+"countdown.wav",4,0
-	mmload_opt assets_dir+"miss.wav",6,0
-	mmload_opt assets_dir+"se_shot.wav",7,0
+	mmload_opt assets_dir+"gameover.wav",6,0
+	mmload_opt assets_dir+"hit.wav",7,0
 	mmload_opt assets_dir+"pause.wav",9,0
 	mmload_opt assets_dir+"powerdown.wav",10,0
 	mmload_opt assets_dir+"options.mp3",12,1
 	mmload_opt assets_dir+"powerup.wav",13,0
 	mmload_opt assets_dir+"special.mp3",14,1
-	mmload_opt assets_dir+"superstar.mp3",15,1
+	mmload_opt assets_dir+"invincible.mp3",15,1
 	mmload_opt assets_dir+"bossbgm.mp3",16,1
 	mmload_opt assets_dir+"bossclear.wav",17,0
 	mmload_opt assets_dir+"btnclick.wav",18,0
