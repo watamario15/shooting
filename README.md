@@ -18,18 +18,30 @@ Windows XP 以降の日本語版で動作します。開発環境の制約上、
 
 ## 素材
 
-本作品は元は高校時代に練習で作ったものですが、著作権上マズい素材をふんだんに使っていたので、公開にあたり全て置き換えています。
+本作品は元は高校時代に個人用に練習で作ったものですが、著作権上マズい素材をふんだんに使っていたので、公開にあたり全て置き換えています。各素材は適宜加工して使用しています。
 
-音声素材は以下の通りです。
+以下の音声素材は [OtoLogic](https://otologic.jp/) ([CC-BY-4.0](https://otologic.jp/free/license.html)) を使用しています。
 
-- カウントダウン効果音（`countdown.wav`, `go.wav`）：[カウントダウン 01](https://otologic.jp/free/se/countdown01.html)
+- [GB　STG　A01](https://otologic.jp/free/bgm/game-shooter-gb01.html) (`title.mp3`)
+- [GB　STG　A02](https://otologic.jp/free/bgm/game-shooter-gb01.html) (`options.mp3`)
+- [GB　STG　A03](https://otologic.jp/free/bgm/game-shooter-gb01.html) (`ending_bad.mp3`)
+- [GB　STG　A04](https://otologic.jp/free/bgm/game-shooter-gb01.html) (`ending_good,mp3`)
+- [GB　STG　A05](https://otologic.jp/free/bgm/game-shooter-gb01.html) (`bgm.wav`)
+- [GB　STG　A08](https://otologic.jp/free/bgm/game-shooter-gb01.html) (`gameover.wav`)
+- [カウントダウン 01](https://otologic.jp/free/se/countdown01.html) (`countdown.wav`, `go.wav`)
+- [SNES　シューティング 01](https://otologic.jp/free/se/game-shooter01.html) (`hit.wav`, `powerdown.wav`)
+- [SNES　シューティング 02](https://otologic.jp/free/se/game-shooter01.html) (`pause.wav`)
 
-画像素材は以下の通りです。
+以下の音声素材は [Kenney](https://www.kenney.nl/) ([CC0-1.0](https://www.kenney.nl/support)) を使用しています。
 
-- TBD
+- [Voiceover Pack](https://www.kenney.nl/assets/voiceover-pack) (`kill.wav`, `shoot.wav`)
+
+以下の画像素材は [Kenney](https://www.kenney.nl/) ([CC0-1.0](https://www.kenney.nl/support)) を使用しています。これ以外は自作ですが、同様に CC0-1.0 とします。
+
+- [Space Shooter Extension](https://www.kenney.nl/assets/space-shooter-extension) (`player.bmp`)
+- [Pixel Shmup](https://www.kenney.nl/assets/pixel-shmup) (`fire.bmp`)
+- [Tiny Dungeon](https://www.kenney.nl/assets/tiny-dungeon) (`enemy.bmp`)
 
 ## 著作権
 
-ソースコードは [MIT License](LICENSE) で配布します。画像素材・音声素材は前節の通りです。
-
-プログラムの最終更新: 2020年09月27日(日)
+ソースコードは著作権を放棄し Public Domain ([CC0-1.0](LICENSE)) で配布します。画像素材・音声素材は前節の通りです。

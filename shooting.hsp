@@ -46,13 +46,13 @@
 	//âπê∫ÉtÉ@ÉCÉãÇÃìoò^
 	dim mmlist,16
 	mmload_opt assets_dir+"bgm.wav",0,1
-	mmload_opt assets_dir+"miss.wav",1,0
+	mmload_opt assets_dir+"gameover.wav",1,0
 	mmload_opt assets_dir+"title.mp3",2,1
 	mmload_opt assets_dir+"countdown.wav",3,0
 	mmload_opt assets_dir+"ending_bad.mp3",4,1
 	mmload_opt assets_dir+"kill.wav",5,0
 	mmload_opt assets_dir+"shoot.wav",6,0
-	mmload_opt assets_dir+"se_shot.wav",7,0
+	mmload_opt assets_dir+"hit.wav",7,0
 	mmload_opt assets_dir+"go.wav",8,0
 	mmload_opt assets_dir+"ending_good.mp3",9,1
 	mmload_opt assets_dir+"pause.wav",10,0
