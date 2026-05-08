@@ -2,6 +2,10 @@
 
 [弾避け](/../dodge) | **Windows 専用版** | [クロスプラットフォーム版](/../main)
 
+![](title.png)
+![](play.png)
+![](result.png)
+
 飛んでくる敵をひたすら撃ち落とし続けるシンプルなシューティングゲームです。上下キーで移動し、右キーで弾を撃ちます。スペースキーを押すと一時停止します。10 秒ごとにレベルが最大 8 まで上がり、奇数レベルでは敵の強さ、偶数レベルでは敵の数が変化します。また、レベル 4 から敵も弾を撃ってきます。得点は時間 1 点、撃破数 5 点です。実行ファイルと同じ場所に作成される `save.bin` ファイルを消すと、最高記録のデータを消去できます。
 
 本作は当初 Windows 専用の通常版 HSP3 で開発していましたが、途中から HSP3Dish を用いた Android 端末を主対象とするクロスプラットフォーム開発に切り替えました。本 branch はクロスプラットフォーム移行前のコードベースを保管するもので、移行後の大量の新要素は含まれません。
@@ -20,7 +24,7 @@ Windows XP 以降の日本語版で動作します。開発環境の制約上、
 
 本作品は元は高校時代に個人用に練習で作ったものですが、著作権上マズい素材をふんだんに使っていたので、公開にあたり全て置き換えています。各素材は適宜加工して使用しています。
 
-以下の音声素材は [OtoLogic](https://otologic.jp/) ([CC-BY-4.0](https://otologic.jp/free/license.html)) を使用しています。
+以下の音声素材は [OtoLogic](https://otologic.jp/) ([CC-BY-4.0](LICENSE.OtoLogic)) を使用しています。
 
 - [GB　STG　A01](https://otologic.jp/free/bgm/game-shooter-gb01.html) (`title.mp3`)
 - [GB　STG　A02](https://otologic.jp/free/bgm/game-shooter-gb01.html) (`options.mp3`)
