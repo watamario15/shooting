@@ -2,6 +2,10 @@
 
 **弾避け** | [Windows 専用版](/../legacy) | [クロスプラットフォーム版](/../main)
 
+![](title.png)
+![](play.png)
+![](result.png)
+
 マウスを動かして上からランダムに降ってくる敵をひたすら避け続けるシンプルなゲームです。10 回ごとにレベルが最大 5 まで上がり、1 度に出る敵の数も増えます。スペースキーを押すと一時停止します。実行ファイルと同じ場所に作成される `save.bin` ファイルを消すと、最高記録のデータを消去できます。
 
 次作のシューティングゲームの原型となった作品です。
@@ -20,7 +24,7 @@ Windows XP 以降の日本語版で動作します。開発環境の制約上、
 
 本作品は元は高校時代に個人用に練習で作ったものですが、著作権上マズい素材をふんだんに使っていたので、公開にあたり全て置き換えています。各素材は適宜加工して使用しています。
 
-音声素材は [OtoLogic](https://otologic.jp/) ([CC-BY-4.0](https://otologic.jp/free/license.html)) を使用しています。
+音声素材は [OtoLogic](https://otologic.jp/) ([CC-BY-4.0](LICENSE.OtoLogic)) を使用しています。
 
 - [GB　レース　A01](https://otologic.jp/free/bgm/game-sports-gb01.html) (`title.mp3`)
 - [GB　レース　A03](https://otologic.jp/free/bgm/game-sports-gb01.html) (`bgm.mp3`)
