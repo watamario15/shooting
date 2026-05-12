@@ -24,6 +24,7 @@ On Linux, the game can run with the [Linux runtime](https://hsp.tv/make/hsp3linu
 - Android 5 or later
   - Since the game is not distributed through the Play Store or similar services, you must enable installation from unknown sources and install the APK directly (installation via ADB is also possible)
   - On newer operating systems or devices with variable refresh rates, the frame rate may become unstable
+  - Some sounds and vibrations might not work depending on the environment
 - Modern Web Browsers [Experimental]
   - The Web version was basically built “just to see if it works,” so it may not function properly
   - Use fullscreen mode if the game extends beyond the screen (play in landscape orientation as text rendering may break if there is too much vertical space)
@@ -38,7 +39,7 @@ The source code is contained in [`shooting.hsp`](shooting.hsp), which can be ope
 
 This project was originally created during my high school years as personal practice, but it used many copyright-problematic assets at the time (You may find out from file names and the source code lol). For public release, all such assets have been replaced. Each asset has been modified as needed.
 
-Audio assets are from [OtoLogic](https://otologic.jp/) ([CC-BY-4.0](https://otologic.jp/free/license.html)).
+Audio assets are from [OtoLogic](https://otologic.jp/) ([CC-BY-4.0](LICENSE.OtoLogic)).
 
 - [GB STG A01](https://otologic.jp/free/bgm/game-shooter-gb01.html) (`title.mp3`)
 - [GB STG A02](https://otologic.jp/free/bgm/game-shooter-gb01.html) (`options.mp3`)
